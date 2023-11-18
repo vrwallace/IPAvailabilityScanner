@@ -1,0 +1,134 @@
+object Form1: TForm1
+  Left = 699
+  Height = 453
+  Top = 250
+  Width = 452
+  BorderStyle = bsSingle
+  Caption = '255.255.0.0 IP Availability Scan v.6'
+  ClientHeight = 453
+  ClientWidth = 452
+  DesignTimePPI = 120
+  OnCloseQuery = FormCloseQuery
+  Position = poScreenCenter
+  LCLVersion = '1.8.0.4'
+  object Edit1: TEdit
+    Left = 128
+    Height = 28
+    Top = 16
+    Width = 232
+    TabStop = False
+    TabOrder = 0
+    Text = '192.168.75.0'
+  end
+  object Label1: TLabel
+    Left = 24
+    Height = 20
+    Top = 16
+    Width = 47
+    Caption = 'Start IP'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    Left = 128
+    Height = 28
+    Top = 64
+    Width = 232
+    TabStop = False
+    TabOrder = 1
+    Text = '192.168.75.255'
+  end
+  object Label2: TLabel
+    Left = 24
+    Height = 20
+    Top = 64
+    Width = 41
+    Caption = 'End IP'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 360
+    Height = 25
+    Top = 152
+    Width = 75
+    Caption = 'Start'
+    OnClick = Button1Click
+    TabOrder = 2
+    TabStop = False
+  end
+  object Memo1: TMemo
+    Left = 16
+    Height = 144
+    Top = 256
+    Width = 418
+    Lines.Strings = (
+      ''
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 3
+    WantReturns = False
+    WordWrap = False
+  end
+  object Button2: TButton
+    Left = 360
+    Height = 25
+    Top = 192
+    Width = 75
+    Caption = 'Stop'
+    OnClick = Button2Click
+    TabOrder = 4
+    TabStop = False
+  end
+  object Label3: TLabel
+    Left = 24
+    Height = 20
+    Top = 112
+    Width = 55
+    Caption = 'Timeout'
+    ParentColor = False
+  end
+  object SpinEdit1: TSpinEdit
+    Left = 128
+    Height = 28
+    Top = 112
+    Width = 106
+    MaxValue = 4000
+    MinValue = 1
+    TabStop = False
+    TabOrder = 5
+    Value = 150
+  end
+  object Label4: TLabel
+    Left = 248
+    Height = 20
+    Top = 112
+    Width = 98
+    Caption = 'ms (less faster)'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 16
+    Height = 28
+    Top = 408
+    Width = 418
+    ReadOnly = True
+    TabOrder = 6
+  end
+  object CheckBox1: TCheckBox
+    Left = 24
+    Height = 24
+    Top = 153
+    Width = 187
+    Caption = 'Also Resolve Host Name'
+    TabOrder = 7
+    TabStop = False
+  end
+  object CheckBox2: TCheckBox
+    Left = 24
+    Height = 24
+    Top = 192
+    Width = 315
+    Caption = 'Also Resolve MAC Address and Find Hidden'
+    TabOrder = 8
+  end
+end
