@@ -10,7 +10,7 @@ uses
   SyncObjs;
 
 var
-  stoppressed: integer; // or Boolean, depending on your intended use
+  stoppressed: integer=0; // or Boolean, depending on your intended use
   ActiveThreads: integer = 0;
   ThreadLock: TCriticalSection;
   MaxThreads: integer = 255; // Set your max threads here
