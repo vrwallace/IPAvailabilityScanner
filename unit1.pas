@@ -53,9 +53,9 @@ type
     FTask: TPingTask;
 
       FHostName, FMacAddress: string;
-    FPingResult: integer;
+    FPingResult: STRING;
     procedure UpdateUI;
-    function PingHostfun(const Host: string): integer;
+    function PingHostfun(const Host: string): STRING;
     function GetMacAddr(const IPAddress: string; var ErrCode: DWORD): string;
     function IPAddrToName(IPAddr: string): string;
 
@@ -159,8 +159,8 @@ begin
               ResultsGrid.RowCount := ResultsGrid.RowCount + 1;
               ResultsGrid.Cells[0, ResultsGrid.RowCount - 1] := IPAddress;
               ResultsGrid.Cells[1, ResultsGrid.RowCount - 1] := IntToStr(Port);
-              ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortDescription;
-              ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortStatus;
+               ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortStatus;
+               ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortDescription;
 
               resultsgrid.Refresh;
 
@@ -229,8 +229,9 @@ begin
       RowCount := 1; // Reset to 1 to keep the header row
       Cells[0, 0] := 'IP';
       Cells[1, 0] := 'Port';
-      Cells[2, 0] := 'Description';
-      Cells[3, 0] := 'Status';
+      Cells[2, 0] := 'Status';
+      Cells[3, 0] := 'Description';
+
     end;
 
     // Perform the port scan for the selected IP
@@ -412,7 +413,7 @@ begin
 
       // Update the grid with the ping results
       Cells[0, RowIndex] := FTask.IPAddress;       // IP Address
-      Cells[1, RowIndex] := IntToStr(FPingResult); // Ping Result
+      Cells[1, RowIndex] := FPingResult; // Ping Result
       Cells[2, RowIndex] := FHostName;             // Host Name
       Cells[3, RowIndex] := FMacAddress;           // MAC Address
 
@@ -586,9 +587,9 @@ end;
 
 
 
-function TPingThread.PingHostfun(const Host: string): integer;
+function TPingThread.PingHostfun(const Host: string): STRING;
 begin
-  Result := 0;
+  Result := 'N/A';
 
 
 
@@ -600,15 +601,18 @@ begin
     begin
       if ReplyError = IE_NoError then
       begin
-        Result := 1;
+
+         Result :=  IntToStr(PingTime)+' ms';
+
+        //Result := 1;
       end
 
       else
-        Result := 0;
+        Result := 'N/A';
     end
     else
     begin
-      Result := 0;
+      Result := 'N/A';
     end;
 
   finally
