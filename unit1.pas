@@ -6,12 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, Grids, pingsend, blcksock, winsock, sockets, Windows,
+  Spin, Grids, pingsend,  winsock, sockets, Windows,
   SyncObjs, Clipbrd, Menus, ComCtrls;
+
 
 var
 
-  ActiveThreads: integer = 0;
+
   ThreadLock: TCriticalSection;
   MaxThreads: integer = 255; // Set your max threads here
   IPList: TStringList;
@@ -51,7 +52,7 @@ type
   private
     FTask: TPingTask;
 
-    FIPAddress, FHostName, FMacAddress: string;
+      FHostName, FMacAddress: string;
     FPingResult: integer;
     procedure UpdateUI;
     function PingHostfun(const Host: string): integer;
@@ -93,7 +94,6 @@ type
     function CalculateNumberOfIPsInRange: integer;
     function GetLocalIPAddress: string;
     procedure FinalizeTasks;
-   // procedure UpdateProgressBar;
   private
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
@@ -101,7 +101,6 @@ type
     procedure StopThreads;
     procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
-    //procedure IncrementAndRefreshProgressBar;
   public
     { Public declarations }
   end;
@@ -191,6 +190,7 @@ var
   Task: TPingTask;
   ErrCode: DWORD;
 begin
+  ErrCode := 0;
   while not Terminated do  // Continue looping until the thread is terminated
   begin
     // Attempt to get a task from the queue
@@ -212,7 +212,6 @@ begin
         FMacAddress := 'N/A';
 
       // Synchronize the UI update
-      Inc(ProcessedIPs);
       Synchronize(@UpdateUI);
 
       Dec(ActiveTasks);
@@ -295,7 +294,6 @@ begin
         begin
           PercentComplete := (rowcount * 100) div IPList.Count;
           form1.ProgressBar1.Position := PercentComplete;
-         // application.ProcessMessages;
         end;
     finally
       ThreadLock.Release;
@@ -351,7 +349,7 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-  I, ipindexstart, ipindexend: cardinal;
+  I,ipindexstart, ipindexend: cardinal;
   IPAddress: Winsock.in_addr;
   startIP, endIP: string;
   Task: TPingTask;
@@ -412,7 +410,6 @@ begin
     Inc(ActiveTasks);
     TaskQueue.AddTask(Task);
 
-    // showmessage(inttostr(activetasks));
   end;
 
   // Start processing the tasks
@@ -557,8 +554,6 @@ begin
   StringGrid1.PopupMenu.Items.Add(CopyMenuItem);
 
 
-  // TaskQueue := TPingTaskQueue.Create;
-  //IPList := TStringList.Create;
   edit1.Text := GetLocalIPAddress;
   edit2.Text := GetLocalIPAddress;
 
