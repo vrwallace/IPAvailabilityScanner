@@ -1,0 +1,138 @@
+object Form1: TForm1
+  Left = 687
+  Height = 383
+  Top = 219
+  Width = 360
+  BorderStyle = bsSingle
+  Caption = 'IP Availability Scan v1.0mq'
+  ClientHeight = 383
+  ClientWidth = 360
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '3.0.0.2'
+  object Edit1: TEdit
+    Left = 102
+    Height = 23
+    Top = 13
+    Width = 186
+    TabStop = False
+    TabOrder = 0
+    Text = '192.168.75.0'
+  end
+  object Label1: TLabel
+    Left = 19
+    Height = 15
+    Top = 13
+    Width = 37
+    Caption = 'Start IP'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    Left = 102
+    Height = 23
+    Top = 51
+    Width = 186
+    TabStop = False
+    TabOrder = 1
+    Text = '192.168.75.255'
+  end
+  object Label2: TLabel
+    Left = 19
+    Height = 15
+    Top = 51
+    Width = 33
+    Caption = 'End IP'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 288
+    Height = 20
+    Top = 122
+    Width = 60
+    Caption = 'Start'
+    TabOrder = 2
+    TabStop = False
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 288
+    Height = 20
+    Top = 154
+    Width = 60
+    Caption = 'Stop'
+    TabOrder = 3
+    TabStop = False
+    OnClick = Button2Click
+  end
+  object Label3: TLabel
+    Left = 19
+    Height = 15
+    Top = 90
+    Width = 44
+    Caption = 'Timeout'
+    ParentColor = False
+  end
+  object SpinEdit1: TSpinEdit
+    Left = 102
+    Height = 23
+    Top = 90
+    Width = 85
+    MaxValue = 4000
+    MinValue = 1
+    TabStop = False
+    TabOrder = 4
+    Value = 1000
+  end
+  object Label4: TLabel
+    Left = 198
+    Height = 15
+    Top = 90
+    Width = 78
+    Caption = 'ms (less faster)'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 13
+    Height = 23
+    Top = 352
+    Width = 335
+    ReadOnly = True
+    TabOrder = 5
+  end
+  object CheckBox1: TCheckBox
+    Left = 19
+    Height = 19
+    Top = 122
+    Width = 147
+    Caption = 'Also Resolve Host Name'
+    TabOrder = 6
+    TabStop = False
+  end
+  object CheckBox2: TCheckBox
+    Left = 19
+    Height = 19
+    Top = 154
+    Width = 250
+    Caption = 'Also Resolve MAC Address and Find Hidden'
+    TabOrder = 7
+  end
+  object StringGrid1: TStringGrid
+    Left = 13
+    Height = 128
+    Top = 192
+    Width = 335
+    ColCount = 4
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
+    RowCount = 1
+    TabOrder = 8
+  end
+  object ProgressBar1: TProgressBar
+    Left = 13
+    Height = 20
+    Top = 328
+    Width = 335
+    TabOrder = 9
+  end
+end
