@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend,  winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls;
+  SyncObjs, Clipbrd, Menus, ComCtrls,unit2;
 
 
 var
@@ -94,6 +94,9 @@ type
     function CalculateNumberOfIPsInRange: integer;
     function GetLocalIPAddress: string;
     procedure FinalizeTasks;
+   procedure ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
+    function GetPortDescription(Port: Integer): string;
+    procedure ButtonScanPortsClick(Sender: TObject);
   private
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
@@ -101,6 +104,8 @@ type
     procedure StopThreads;
     procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
+     procedure PortScanMenuItemClick(Sender: TObject);
+     // procedure UpdateGrid(IP: String; Port: Integer; Description: String; Status: String);
   public
     { Public declarations }
   end;
@@ -115,10 +120,133 @@ function CompareIPs(const IP1, IP2: string): integer;
 
 var
   Form1: TForm1;
-
-implementation
+ implementation
 
 {$R *.lfm}
+
+ procedure TForm1.ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
+var
+  ClientSocket: LongInt;
+  SockAddr: TInetSockAddr;
+  Ports: TStringList;
+  i, Port: Integer;
+  PortStatus, PortDescription: string;
+begin
+  Ports := TStringList.Create;
+  try
+    Ports.CommaText := PortList; // Splitting the comma-delimited list into individual ports
+
+    for i := 0 to Ports.Count - 1 do
+    begin
+      if TryStrToInt(Ports[i], Port) then
+      begin
+        ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if ClientSocket <> -1 then
+        begin
+          SockAddr.sin_family := AF_INET;
+          SockAddr.sin_port := htons(Port);
+          SockAddr.sin_addr.s_addr := inet_addr(PChar(IPAddress));
+
+          if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
+            PortStatus := 'Open'
+          else
+            PortStatus := 'Closed';
+
+          PortDescription := GetPortDescription(Port);
+
+          // Update the grid
+
+              ResultsGrid.RowCount := ResultsGrid.RowCount + 1;
+              ResultsGrid.Cells[0, ResultsGrid.RowCount - 1] := IPAddress;
+              ResultsGrid.Cells[1, ResultsGrid.RowCount - 1] := IntToStr(Port);
+              ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortDescription;
+              ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortStatus;
+
+              resultsgrid.Refresh;
+
+          fpshutdown(ClientSocket, 2);
+          CloseSocket(ClientSocket);
+        end;
+      end;
+    end;
+  finally
+    Ports.Free;
+  end;
+end;
+
+
+
+
+
+ function TForm1.GetPortDescription(Port: Integer): string;
+begin
+  case Port of
+    20: Result := 'FTP Data Transfer';
+    21: Result := 'FTP Command Control';
+    22: Result := 'Secure Shell (SSH)';
+    23: Result := 'Telnet';
+    25: Result := 'Simple Mail Transfer Protocol (SMTP)';
+    53: Result := 'Domain Name System (DNS)';
+    80: Result := 'Hypertext Transfer Protocol (HTTP)';
+    110: Result := 'Post Office Protocol (POP3)';
+    119: Result := 'Network News Transfer Protocol (NNTP)';
+    123: Result := 'Network Time Protocol (NTP)';
+    143: Result := 'Internet Message Access Protocol (IMAP)';
+    161: Result := 'Simple Network Management Protocol (SNMP)';
+    194: Result := 'Internet Relay Chat (IRC)';
+    443: Result := 'HTTPS - HTTP over TLS/SSL';
+    465: Result := 'SMTPS - Secure SMTP over SSL (deprecated)';
+    587: Result := 'SMTP Mail Submission';
+    993: Result := 'IMAPS - IMAP over SSL';
+    995: Result := 'POP3S - POP3 over SSL';
+    3306: Result := 'MySQL Database Server';
+    3389: Result := 'Remote Desktop Protocol (RDP)';
+  else
+    Result := 'Unknown';
+  end;
+end;
+
+
+ procedure TForm1.ButtonScanPortsClick(Sender: TObject);
+var
+  SelectedIP, PortList: string;
+  SelectedRow: Integer;
+begin
+  PortList := '20,21,22,23,25,53,80,110,119,123,143,161,194,443,465,587,993,995,3306,3389'; // Example port list
+
+  // Check if a row is selected
+  SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
+  if (SelectedRow > 0) and (SelectedRow < StringGrid1.RowCount) then
+  begin
+    SelectedIP := StringGrid1.Cells[0, SelectedRow]; // Assuming IPs are in the first column
+
+     FormScanResults.show;
+    // FormScanResults.ShowModal;
+
+    // Prepare the StringGrid on FormScanResults
+    with FormScanResults.StringGridResults do
+    begin
+      RowCount := 1; // Reset to 1 to keep the header row
+      Cells[0, 0] := 'IP';
+      Cells[1, 0] := 'Port';
+      Cells[2, 0] := 'Description';
+      Cells[3, 0] := 'Status';
+    end;
+
+    // Perform the port scan for the selected IP
+
+    FormScanResults.edit1.text:='Scanning Ports!';
+    formscanresults.edit1.Refresh;
+    ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
+    FormScanResults.StringGridResults.AutoSizeColumns;
+    FormScanResults.edit1.text:='Complete!';
+    // Show the results
+   // FormScanResults.ShowModal;
+  end
+  else
+    ShowMessage('Please select a row with an IP address.');
+end;
+
 
 
 constructor TPingTaskQueue.Create;
@@ -528,11 +656,15 @@ begin
 
   end;
 end;
-
+ procedure TForm1.PortScanMenuItemClick(Sender: TObject);
+ begin
+    ButtonScanPortsClick(Sender);
+end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 var
   CopyMenuItem: TMenuItem;
+  PortScanMenuItem: TMenuItem;
 begin
 
   // Initialize the critical section for thread synchronization
@@ -547,9 +679,14 @@ begin
   // Create the popup menu
   StringGrid1.PopupMenu := TPopupMenu.Create(StringGrid1);
 
+  // Create the port scan menu item
+  PortScanMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
+  PortScanMenuItem.Caption := 'Scan Ports (Single)';
+  PortScanMenuItem.OnClick := @PortScanMenuItemClick;
+  StringGrid1.PopupMenu.Items.Add(PortScanMenuItem);
   // Create the copy menu item
   CopyMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
-  CopyMenuItem.Caption := 'Copy';
+  CopyMenuItem.Caption := 'Copy (Multiple)';
   CopyMenuItem.OnClick := @CopyMenuItemClick;
   StringGrid1.PopupMenu.Items.Add(CopyMenuItem);
 

@@ -1,0 +1,27 @@
+object FormScanResults: TFormScanResults
+  Left = 432
+  Height = 266
+  Top = 134
+  Width = 320
+  Caption = 'Port Scan Results'
+  ClientHeight = 266
+  ClientWidth = 320
+  OnCreate = FormCreate
+  LCLVersion = '3.0.0.2'
+  object StringGridResults: TStringGrid
+    Left = 8
+    Height = 224
+    Top = 8
+    Width = 304
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
+    TabOrder = 0
+  end
+  object Edit1: TEdit
+    Left = 8
+    Height = 23
+    Top = 238
+    Width = 304
+    TabOrder = 1
+  end
+end
