@@ -1,13 +1,13 @@
 object FormScanResults: TFormScanResults
   Left = 432
-  Height = 295
+  Height = 325
   Top = 134
-  Width = 320
+  Width = 317
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Port Scan Results'
-  ClientHeight = 295
-  ClientWidth = 320
+  ClientHeight = 325
+  ClientWidth = 317
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '3.0.0.2'
@@ -24,15 +24,24 @@ object FormScanResults: TFormScanResults
   object Edit1: TEdit
     Left = 8
     Height = 23
-    Top = 264
+    Top = 288
     Width = 304
     TabOrder = 1
   end
   object ProgressBar1: TProgressBar
     Left = 8
     Height = 20
-    Top = 240
+    Top = 264
     Width = 304
     TabOrder = 2
+  end
+  object Button1: TButton
+    Left = 237
+    Height = 25
+    Top = 232
+    Width = 75
+    Caption = 'Stop'
+    TabOrder = 3
+    OnClick = Button1Click
   end
 end

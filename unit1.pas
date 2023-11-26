@@ -145,6 +145,11 @@ begin
 
     for i := 0 to Ports.Count - 1 do
     begin
+      if (unit2.stoppressed=1) then
+      begin
+
+      break;
+      end;
       if TryStrToInt(Ports[i], Port) then
       begin
         ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -170,8 +175,10 @@ begin
           ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortDescription;
           PercentComplete := (i + 1) * 100 div Ports.Count;
           FormScanResults.ProgressBar1.Position := PercentComplete;
-          FormScanResults.refresh;
+          FormScanResults.ProgressBar1.refresh;
+          FormScanResults.Button1.refresh;
           resultsgrid.Refresh;
+          application.processmessages;
 
           fpshutdown(ClientSocket, 2);
           CloseSocket(ClientSocket);
@@ -250,7 +257,7 @@ begin
   PortList := '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,'
     + '993,995,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
     + '5432,5900,6001,8080,8443,10000';
-
+     unit2.stoppressed:=0;
 
   // Check if a row is selected
   SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
@@ -522,6 +529,7 @@ var
   startIP, endIP: string;
   Task: TPingTask;
 begin
+
   progressbar1.Position := 0;
   ActiveTasks := 0;
   edit3.Text := '';
@@ -710,7 +718,7 @@ var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
 begin
-
+stoppressed:=0;
   // Initialize the critical section for thread synchronization
   ThreadLock := TCriticalSection.Create;
 

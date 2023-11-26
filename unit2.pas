@@ -8,14 +8,21 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
   clipbrd, ComCtrls, Windows, ShellAPI;
 
+
+  var
+    stoppressed:integer=0;
+
+
 type
 
   { TFormScanResults }
 
   TFormScanResults = class(TForm)
+    Button1: TButton;
     Edit1: TEdit;
     ProgressBar1: TProgressBar;
     StringGridResults: TStringGrid;
+    procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure CopySelectedCells(Sender: TObject);
     procedure OpenInDefaultApp(Sender: TObject);
@@ -65,6 +72,11 @@ begin
   MenuItemCopy.OnClick := @CopySelectedCells;
   stringgridresults.PopupMenu.Items.Add(MenuItemCopy);
 
+end;
+
+procedure TFormScanResults.Button1Click(Sender: TObject);
+begin
+  stoppressed:=1;
 end;
 
 procedure TFormScanResults.OpenInDefaultApp(Sender: TObject);
