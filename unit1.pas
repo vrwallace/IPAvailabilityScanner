@@ -286,7 +286,12 @@ begin
     formscanresults.edit1.Refresh;
     ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
     FormScanResults.StringGridResults.AutoSizeColumns;
-    FormScanResults.edit1.Text := 'Complete!';
+    if (unit2.stoppressed = 0) then FormScanResults.edit1.Text := 'Complete!'
+    else
+      begin
+    FormScanResults.edit1.Text := 'Stopped!';
+    FormScanResults.progressbar1.Position:=0;
+      end;
     // Show the results
     // FormScanResults.ShowModal;
   end
