@@ -100,6 +100,16 @@ begin
   2049: URL := 'nfs://' + IPAddress + ':' + IntToStr(Port); // NFS
   8080, 8000: URL := 'http://' + IPAddress + ':' + IntToStr(Port); // Common alternative HTTP ports
   8443: URL := 'https://' + IPAddress + ':' + IntToStr(Port); // Common alternative HTTPS port
+   10000: URL := 'https://' + IPAddress + ':' + IntToStr(Port); // Common alternative HTTPS port
+   2082: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
+    2083: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
+    2086: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
+    2087: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
+    2095: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
+    2096: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
+
+
+
   // Add other ports and protocols as needed
 else
   Exit; // Do nothing for unknown ports
