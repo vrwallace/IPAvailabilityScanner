@@ -6,9 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, Grids, pingsend,  winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls,unit2;
-
+  Spin, Grids, pingsend, winsock, sockets, Windows,
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2;
 
 var
 
@@ -52,10 +51,10 @@ type
   private
     FTask: TPingTask;
 
-      FHostName, FMacAddress: string;
-    FPingResult: STRING;
+    FHostName, FMacAddress: string;
+    FPingResult: string;
     procedure UpdateUI;
-    function PingHostfun(const Host: string): STRING;
+    function PingHostfun(const Host: string): string;
     function GetMacAddr(const IPAddress: string; var ErrCode: DWORD): string;
     function IPAddrToName(IPAddr: string): string;
 
@@ -94,8 +93,8 @@ type
     function CalculateNumberOfIPsInRange: integer;
     function GetLocalIPAddress: string;
     procedure FinalizeTasks;
-   procedure ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
-    function GetPortDescription(Port: Integer): string;
+    procedure ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
+    function GetPortDescription(Port: integer): string;
     procedure ButtonScanPortsClick(Sender: TObject);
   private
     TaskQueue: TPingTaskQueue;
@@ -104,8 +103,8 @@ type
     procedure StopThreads;
     procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
-     procedure PortScanMenuItemClick(Sender: TObject);
-     // procedure UpdateGrid(IP: String; Port: Integer; Description: String; Status: String);
+    procedure PortScanMenuItemClick(Sender: TObject);
+    // procedure UpdateGrid(IP: String; Port: Integer; Description: String; Status: String);
   public
     { Public declarations }
   end;
@@ -120,21 +119,29 @@ function CompareIPs(const IP1, IP2: string): integer;
 
 var
   Form1: TForm1;
- implementation
+
+implementation
 
 {$R *.lfm}
 
- procedure TForm1.ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
+procedure TForm1.ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
 var
-  ClientSocket: LongInt;
+  ClientSocket: longint;
   SockAddr: TInetSockAddr;
   Ports: TStringList;
-  i, Port: Integer;
+  i, Port, PercentComplete: integer;
   PortStatus, PortDescription: string;
 begin
   Ports := TStringList.Create;
+
+  FormScanResults.ProgressBar1.Min := 0;
+  FormScanResults.ProgressBar1.Max := 100;
+  FormScanResults.ProgressBar1.Position := 0;
+
+
   try
-    Ports.CommaText := PortList; // Splitting the comma-delimited list into individual ports
+    Ports.CommaText := PortList;
+    // Splitting the comma-delimited list into individual ports
 
     for i := 0 to Ports.Count - 1 do
     begin
@@ -156,13 +163,15 @@ begin
 
           // Update the grid
 
-              ResultsGrid.RowCount := ResultsGrid.RowCount + 1;
-              ResultsGrid.Cells[0, ResultsGrid.RowCount - 1] := IPAddress;
-              ResultsGrid.Cells[1, ResultsGrid.RowCount - 1] := IntToStr(Port);
-               ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortStatus;
-               ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortDescription;
-
-              resultsgrid.Refresh;
+          ResultsGrid.RowCount := ResultsGrid.RowCount + 1;
+          ResultsGrid.Cells[0, ResultsGrid.RowCount - 1] := IPAddress;
+          ResultsGrid.Cells[1, ResultsGrid.RowCount - 1] := IntToStr(Port);
+          ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortStatus;
+          ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortDescription;
+          PercentComplete := (i + 1) * 100 div Ports.Count;
+          FormScanResults.ProgressBar1.Position := PercentComplete;
+          FormScanResults.refresh;
+          resultsgrid.Refresh;
 
           fpshutdown(ClientSocket, 2);
           CloseSocket(ClientSocket);
@@ -177,8 +186,7 @@ end;
 
 
 
-
- function TForm1.GetPortDescription(Port: Integer): string;
+function TForm1.GetPortDescription(Port: integer): string;
 begin
   case Port of
     20: Result := 'FTP Data Transfer';
@@ -191,36 +199,67 @@ begin
     110: Result := 'Post Office Protocol (POP3)';
     119: Result := 'Network News Transfer Protocol (NNTP)';
     123: Result := 'Network Time Protocol (NTP)';
+    135: Result := 'Microsoft RPC';
+    139: Result := 'NetBIOS';
     143: Result := 'Internet Message Access Protocol (IMAP)';
     161: Result := 'Simple Network Management Protocol (SNMP)';
     194: Result := 'Internet Relay Chat (IRC)';
+    389: Result := 'LDAP';
     443: Result := 'HTTPS - HTTP over TLS/SSL';
+    445: Result := 'Microsoft-DS (SMB)';
     465: Result := 'SMTPS - Secure SMTP over SSL (deprecated)';
+    554: Result := 'Real Time Streaming Protocol (RTSP)';
     587: Result := 'SMTP Mail Submission';
+    631: Result := 'Internet Printing Protocol (IPP)';
     993: Result := 'IMAPS - IMAP over SSL';
     995: Result := 'POP3S - POP3 over SSL';
+    1433: Result := 'Microsoft SQL Server';
+    1521: Result := 'Oracle database default listener';
+    1723: Result := 'Point-to-Point Tunneling Protocol (PPTP)';
+    2049: Result := 'Network File System (NFS)';
+    2082: Result := 'cPanel default';
+    2083: Result := 'cPanel over SSL';
+    2086: Result := 'Web Host Manager default';
+    2087: Result := 'Web Host Manager over SSL';
+    2095: Result := 'cPanel Webmail';
+    2096: Result := 'cPanel Secure Webmail';
     3306: Result := 'MySQL Database Server';
     3389: Result := 'Remote Desktop Protocol (RDP)';
-  else
-    Result := 'Unknown';
+    5060: Result := 'Session Initiation Protocol (SIP)';
+    5222: Result := 'XMPP/Jabber Client Connection';
+    5269: Result := 'XMPP/Jabber Server Connection';
+    5432: Result := 'PostgreSQL database';
+    5900: Result := 'Virtual Network Computing (VNC)';
+    6001: Result := 'X11:1';
+    8080: Result := 'HTTP Alternate (http_alt)';
+    8443: Result := 'HTTPS Alternate';
+    10000: Result := 'Webmin';
+    else
+      Result := 'Unknown';
   end;
 end;
 
 
- procedure TForm1.ButtonScanPortsClick(Sender: TObject);
+
+
+procedure TForm1.ButtonScanPortsClick(Sender: TObject);
 var
   SelectedIP, PortList: string;
-  SelectedRow: Integer;
+  SelectedRow: integer;
 begin
-  PortList := '20,21,22,23,25,53,80,110,119,123,143,161,194,443,465,587,993,995,3306,3389'; // Example port list
+  PortList := '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,'
+    + '993,995,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
+    + '5432,5900,6001,8080,8443,10000';
+
 
   // Check if a row is selected
   SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
   if (SelectedRow > 0) and (SelectedRow < StringGrid1.RowCount) then
   begin
-    SelectedIP := StringGrid1.Cells[0, SelectedRow]; // Assuming IPs are in the first column
+    SelectedIP := StringGrid1.Cells[0, SelectedRow];
+    // Assuming IPs are in the first column
 
-     FormScanResults.show;
+    FormScanResults.Show;
     // FormScanResults.ShowModal;
 
     // Prepare the StringGrid on FormScanResults
@@ -236,13 +275,13 @@ begin
 
     // Perform the port scan for the selected IP
 
-    FormScanResults.edit1.text:='Scanning Ports!';
+    FormScanResults.edit1.Text := 'Scanning Ports!';
     formscanresults.edit1.Refresh;
     ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
     FormScanResults.StringGridResults.AutoSizeColumns;
-    FormScanResults.edit1.text:='Complete!';
+    FormScanResults.edit1.Text := 'Complete!';
     // Show the results
-   // FormScanResults.ShowModal;
+    // FormScanResults.ShowModal;
   end
   else
     ShowMessage('Please select a row with an IP address.');
@@ -418,12 +457,12 @@ begin
       Cells[3, RowIndex] := FMacAddress;           // MAC Address
 
 
-                if IPList.Count > 0 then
-          // Avoid division by zero
-        begin
-          PercentComplete := (rowcount * 100) div IPList.Count;
-          form1.ProgressBar1.Position := PercentComplete;
-        end;
+      if IPList.Count > 0 then
+        // Avoid division by zero
+      begin
+        PercentComplete := (rowcount * 100) div IPList.Count;
+        form1.ProgressBar1.Position := PercentComplete;
+      end;
     finally
       ThreadLock.Release;
     end;
@@ -478,12 +517,12 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-  I,ipindexstart, ipindexend: cardinal;
+  I, ipindexstart, ipindexend: cardinal;
   IPAddress: Winsock.in_addr;
   startIP, endIP: string;
   Task: TPingTask;
 begin
-  progressbar1.Position:=0;
+  progressbar1.Position := 0;
   ActiveTasks := 0;
   edit3.Text := '';
   stringgrid1.Clear;
@@ -516,9 +555,9 @@ begin
     Exit;
   end;
 
-  if (ipindexend<ipindexstart) then
+  if (ipindexend < ipindexstart) then
   begin
-    showmessage('Starting Has to be less than ending IP');
+    ShowMessage('Starting Has to be less than ending IP');
     exit;
   end;
 
@@ -587,7 +626,7 @@ end;
 
 
 
-function TPingThread.PingHostfun(const Host: string): STRING;
+function TPingThread.PingHostfun(const Host: string): string;
 begin
   Result := 'N/A';
 
@@ -602,7 +641,7 @@ begin
       if ReplyError = IE_NoError then
       begin
 
-         Result :=  IntToStr(PingTime)+' ms';
+        Result := IntToStr(PingTime) + ' ms';
 
         //Result := 1;
       end
@@ -660,9 +699,10 @@ begin
 
   end;
 end;
- procedure TForm1.PortScanMenuItemClick(Sender: TObject);
- begin
-    ButtonScanPortsClick(Sender);
+
+procedure TForm1.PortScanMenuItemClick(Sender: TObject);
+begin
+  ButtonScanPortsClick(Sender);
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -710,7 +750,6 @@ begin
 
   // Other initializations...
 end;
-
 
 
 

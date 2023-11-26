@@ -3,6 +3,7 @@ object Form1: TForm1
   Height = 383
   Top = 219
   Width = 360
+  BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'IP Availability Scan v1.0mq'
   ClientHeight = 383

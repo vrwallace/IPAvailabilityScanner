@@ -1,18 +1,22 @@
 object FormScanResults: TFormScanResults
   Left = 432
-  Height = 266
+  Height = 295
   Top = 134
   Width = 320
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'Port Scan Results'
-  ClientHeight = 266
+  ClientHeight = 295
   ClientWidth = 320
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '3.0.0.2'
   object StringGridResults: TStringGrid
     Left = 8
     Height = 224
     Top = 8
     Width = 304
+    ColCount = 4
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
     TabOrder = 0
@@ -20,8 +24,15 @@ object FormScanResults: TFormScanResults
   object Edit1: TEdit
     Left = 8
     Height = 23
-    Top = 238
+    Top = 264
     Width = 304
     TabOrder = 1
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 20
+    Top = 240
+    Width = 304
+    TabOrder = 2
   end
 end

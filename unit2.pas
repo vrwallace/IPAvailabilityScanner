@@ -5,7 +5,8 @@ unit Unit2;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls,menus,clipbrd,Windows, ShellAPI;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
+  clipbrd, ComCtrls, Windows, ShellAPI;
 
 type
 
@@ -13,11 +14,12 @@ type
 
   TFormScanResults = class(TForm)
     Edit1: TEdit;
+    ProgressBar1: TProgressBar;
     StringGridResults: TStringGrid;
     procedure FormCreate(Sender: TObject);
-     procedure CopySelectedCells(Sender: TObject);
-     procedure OpenInDefaultApp(Sender: TObject);
-     procedure OpenURL(URL: string);
+    procedure CopySelectedCells(Sender: TObject);
+    procedure OpenInDefaultApp(Sender: TObject);
+    procedure OpenURL(URL: string);
   private
 
   public
@@ -41,18 +43,17 @@ end;
 
 
 procedure TFormScanResults.FormCreate(Sender: TObject);
-
-  var
-  MenuItemcopy,MenuItemOpen: TMenuItem;
-  begin
- // inherited Create(AOwner);
+var
+  MenuItemcopy, MenuItemOpen: TMenuItem;
+begin
+  // inherited Create(AOwner);
 
 
 
   // Create popup menu
- stringgridresults.PopupMenu := TPopupMenu.Create(stringgridresults);
+  stringgridresults.PopupMenu := TPopupMenu.Create(stringgridresults);
 
-   // Open MenuItem
+  // Open MenuItem
   MenuItemOpen := TMenuItem.Create(PopupMenu);
   MenuItemOpen.Caption := 'Open in Default Application';
   MenuItemOpen.OnClick := @OpenInDefaultApp;
@@ -64,16 +65,13 @@ procedure TFormScanResults.FormCreate(Sender: TObject);
   MenuItemCopy.OnClick := @CopySelectedCells;
   stringgridresults.PopupMenu.Items.Add(MenuItemCopy);
 
-
-
-
-
 end;
- procedure TFormScanResults.OpenInDefaultApp(Sender: TObject);
+
+procedure TFormScanResults.OpenInDefaultApp(Sender: TObject);
 var
-  SelectedRow: Integer;
+  SelectedRow: integer;
   IPAddress, PortStr: string;
-  Port: Integer;
+  Port: integer;
   URL: string;
 begin
   SelectedRow := StringGridResults.Row;
@@ -84,31 +82,43 @@ begin
 
     if TryStrToInt(PortStr, Port) then
     begin
-      case Port of
-        80: URL := 'http://' + IPAddress+':'+inttostr(port);
-        443: URL := 'https://' + IPAddress+':'+inttostr(port);
-        22: URL := 'ssh://' + IPAddress+':'+inttostr(port);
-        21: URL := 'ftp://' + IPAddress+':'+inttostr(port);
-        23: URL := 'telnet://' + IPAddress+':'+inttostr(port); // Assuming the system has a telnet handler
-        3389: URL := 'rdp://' + IPAddress+':'+inttostr(port); // RDP - Specific to applications that can handle RDP URLs
-        // Add additional ports and protocols as needed
-      else
-        Exit; // Do nothing for unknown ports
-      end;
+     case Port of
+  80: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
+  443: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
+  22: URL := 'ssh://' + IPAddress + ':' + IntToStr(Port);
+  21: URL := 'ftp://' + IPAddress + ':' + IntToStr(Port);
+  23: URL := 'telnet://' + IPAddress + ':' + IntToStr(Port);
+  445: URL := 'smb://' + IPAddress; // SMB Protocol
+  3389: URL := 'rdp://' + IPAddress + ':' + IntToStr(Port);
+  3306: URL := 'mysql://' + IPAddress + ':' + IntToStr(Port); // MySQL
+  1433: URL := 'mssql://' + IPAddress + ':' + IntToStr(Port); // Microsoft SQL Server
+  5432: URL := 'postgresql://' + IPAddress + ':' + IntToStr(Port); // PostgreSQL
+  5900: URL := 'vnc://' + IPAddress + ':' + IntToStr(Port); // VNC
+  5060: URL := 'sip://' + IPAddress + ':' + IntToStr(Port); // SIP
+  25: URL := 'mailto:' + IPAddress; // SMTP, typically doesn't use URL but can be used for mailto
+  119: URL := 'news://' + IPAddress + ':' + IntToStr(Port); // NNTP
+  2049: URL := 'nfs://' + IPAddress + ':' + IntToStr(Port); // NFS
+  8080, 8000: URL := 'http://' + IPAddress + ':' + IntToStr(Port); // Common alternative HTTP ports
+  8443: URL := 'https://' + IPAddress + ':' + IntToStr(Port); // Common alternative HTTPS port
+  // Add other ports and protocols as needed
+else
+  Exit; // Do nothing for unknown ports
+end;
 
-      // Open the URL with the default application
-      if URL <> '' then
-        OpenURL(URL);
+// Open the URL with the default application
+if URL <> '' then
+  OpenURL(URL);
+
     end;
   end;
 end;
 
 
 
-     procedure TFormScanResults.CopySelectedCells(Sender: TObject);
+procedure TFormScanResults.CopySelectedCells(Sender: TObject);
 var
   ClipBoardText: string;
-  i, j: Integer;
+  i, j: integer;
 begin
   ClipBoardText := '';
   with StringGridResults do
@@ -124,5 +134,5 @@ begin
   end;
   Clipboard.AsText := ClipBoardText;
 end;
-end.
 
+end.
