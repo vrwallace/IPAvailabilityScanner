@@ -216,8 +216,9 @@ begin
     RowCount := RowCount + 1;
     Cells[0, RowCount - 1] := FScanResult.IPAddress;
     Cells[1, RowCount - 1] := IntToStr(FScanResult.Port);
-    Cells[2, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
-    Cells[3, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
+    Cells[2, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
+    Cells[3, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
+
   end;
 end;
 
