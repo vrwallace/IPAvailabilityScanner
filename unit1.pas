@@ -118,8 +118,12 @@ type
     function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
       const ColIndex: integer): integer;
   private
+    CompletedScans: integer;
 
+    TotalScans: integer;
     ActiveScanThreads: integer;
+
+
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
     procedure StartThreads;
@@ -127,7 +131,8 @@ type
     procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
     procedure PortScanMenuItemClick(Sender: TObject);
-     public
+    procedure UpdateProgressBar;
+  public
     { Public declarations }
   end;
 
@@ -159,6 +164,20 @@ procedure TPortScanThread.Execute;
 begin
   DoScan;
   Synchronize(@UpdateGridWrapper);
+  InterlockedIncrement(Form1.CompletedScans);
+  Synchronize(@Form1.UpdateProgressBar);
+
+end;
+
+procedure TForm1.UpdateProgressBar;
+var
+  PercentComplete: integer;
+begin
+  if TotalScans > 0 then
+  begin
+    PercentComplete := (CompletedScans * 100) div TotalScans;
+    FormScanResults.ProgressBar1.Position := PercentComplete;
+  end;
 end;
 
 procedure TPortScanThread.DoScan;
@@ -225,26 +244,27 @@ begin
   InterlockedDecrement(ActiveScanThreads);
 
   if ActiveScanThreads = 0 then
-    begin
-    SortGridports;
-  FormScanResults.StringGridResults.AutoSizeColumns;
-
-  if (unit2.stoppressed = 0) then FormScanResults.edit1.Text := 'Complete!'
-  else
   begin
-    FormScanResults.edit1.Text := 'Stopped!';
-    FormScanResults.progressbar1.Position := 0;
-  end;
+    SortGridports;
+    FormScanResults.StringGridResults.AutoSizeColumns;
+
+    if (unit2.stoppressed = 0) then FormScanResults.edit1.Text := 'Complete!'
+    else
+    begin
+      FormScanResults.edit1.Text := 'Stopped!';
+      FormScanResults.progressbar1.Position := 0;
+    end;
     TrimAppMemorySize;
+  end;
 end;
-end;
+
 procedure TForm1.SortGridports;
 begin
   // Implement your sorting logic here
   // Example: Sort by port number (column index 1)
   SortStringGrid2(FormScanResults.StringGridResults, 1); // Sort by column 1
 
-  end;
+end;
 
 function tform1.CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
   const ColIndex: integer): integer;
@@ -351,7 +371,6 @@ begin
     +
     '5432,5900,6001,8080,8443,10000';
   unit2.stoppressed := 0;
-
   // Check if a row is selected
   SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
   if (SelectedRow > 0) and (SelectedRow < StringGrid1.RowCount) then
@@ -395,7 +414,16 @@ begin
       Free;
     end;
 
+    CompletedScans := 0;
 
+
+    FormScanResults.ProgressBar1.Min := 0;
+    FormScanResults.ProgressBar1.Max := 100; // For percentage
+    FormScanResults.ProgressBar1.Position := 0;
+
+
+
+    TotalScans := Length(PortArray);
     StartPortScanning(SelectedIP, PortArray); // Example IP and ports
 
   end
