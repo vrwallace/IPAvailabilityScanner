@@ -18,10 +18,26 @@ var
   ActiveTasks: integer = 0;
   ProcessedIPs: integer = 0;
 
-
-
-
 type
+  TScanResult = record
+    IPAddress: string;
+    Port: integer;
+    Status: string;
+  end;
+
+  TPortScanThread = class(TThread)
+  private
+    FScanResult: TScanResult;
+    procedure UpdateGrid;
+    procedure UpdateGridWrapper;
+    procedure DoScan;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(const IPAddress: string; Port: integer);
+  end;
+
+
 
   // Assuming TPingTask is a simple record for demonstration
   TPingTask = record
@@ -96,9 +112,18 @@ type
     procedure ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
     function GetPortDescription(Port: integer): string;
     procedure ButtonScanPortsClick(Sender: TObject);
+    procedure StartPortScanning(const IPAddress: string; Ports: array of integer);
+    procedure PortScanTerminated(Sender: TObject);
+    procedure SortGridports;
+    procedure SortStringGrid2(Grid: TStringGrid; ColIndex: integer);
+    function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
+      const ColIndex: integer): integer;
   private
+
+    ActiveScanThreads: integer;
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
+    // procedure SortGrid;
     procedure StartThreads;
     procedure StopThreads;
     procedure DumpExceptionCallStack(E: Exception);
@@ -124,6 +149,143 @@ implementation
 
 {$R *.lfm}
 
+
+constructor TPortScanThread.Create(const IPAddress: string; Port: integer);
+begin
+  inherited Create(True);
+  FScanResult.IPAddress := IPAddress;
+  FScanResult.Port := Port;
+  FreeOnTerminate := True;
+end;
+
+procedure TPortScanThread.Execute;
+begin
+  DoScan;
+  Synchronize(@UpdateGridWrapper);
+end;
+
+procedure TPortScanThread.DoScan;
+var
+  ClientSocket: longint;
+  SockAddr: TInetSockAddr;
+begin
+  ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if ClientSocket = -1 then Exit;
+
+  try
+    SockAddr.sin_family := AF_INET;
+    SockAddr.sin_port := htons(FScanResult.Port);
+    SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
+
+    if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
+      FScanResult.Status := 'Open'
+    else
+      FScanResult.Status := 'Closed';
+
+  finally
+    fpshutdown(ClientSocket, SHUT_RDWR);
+    CloseSocket(ClientSocket);
+  end;
+end;
+
+procedure TPortScanThread.UpdateGridWrapper;
+begin
+  UpdateGrid;
+end;
+
+procedure TPortScanThread.UpdateGrid;
+begin
+  with Formscanresults.StringGridResults do
+  begin
+    RowCount := RowCount + 1;
+    Cells[0, RowCount - 1] := FScanResult.IPAddress;
+    Cells[1, RowCount - 1] := IntToStr(FScanResult.Port);
+    Cells[2, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
+    Cells[3, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
+  end;
+end;
+
+procedure TForm1.StartPortScanning(const IPAddress: string; Ports: array of integer);
+var
+  i: integer;
+  PortScanThread: TPortScanThread;
+begin
+  Inc(ActiveScanThreads, Length(Ports)); // Increment the thread count
+
+  for i := Low(Ports) to High(Ports) do
+  begin
+    PortScanThread := TPortScanThread.Create(IPAddress, Ports[i]);
+    PortScanThread.OnTerminate := @PortScanTerminated;
+    // Set the event handler // Set the OnTerminate event
+    PortScanThread.Start;
+  end;
+end;
+
+
+procedure TForm1.PortScanTerminated(Sender: TObject);
+begin
+  // Decrement the count in a thread-safe way
+  InterlockedDecrement(ActiveScanThreads);
+
+  if ActiveScanThreads = 0 then
+    begin
+    SortGridports;
+  FormScanResults.StringGridResults.AutoSizeColumns;
+
+  if (unit2.stoppressed = 0) then FormScanResults.edit1.Text := 'Complete!'
+  else
+  begin
+    FormScanResults.edit1.Text := 'Stopped!';
+    FormScanResults.progressbar1.Position := 0;
+  end;
+
+end;
+end;
+procedure TForm1.SortGridports;
+begin
+  // Implement your sorting logic here
+  // Example: Sort by port number (column index 1)
+  //formscanresults.StringGridResults.SortOrder := soAscending;
+  SortStringGrid2(FormScanResults.StringGridResults, 1); // Sort by column 1
+
+  //formscanresults.StringGridResults.refresh;
+end;
+
+function tform1.CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
+  const ColIndex: integer): integer;
+var
+  Val1, Val2: string;
+begin
+  Val1 := Grid.Cells[ColIndex, Row1];
+  Val2 := Grid.Cells[ColIndex, Row2];
+
+  // Compare as integer if they are numbers, otherwise as strings
+  if TryStrToInt(Val1, Result) and TryStrToInt(Val2, Result) then
+    Result := StrToInt(Val1) - StrToInt(Val2)
+  else
+    Result := CompareStr(Val1, Val2);
+end;
+
+procedure TForm1.SortStringGrid2(Grid: TStringGrid; ColIndex: integer);
+var
+  i, j, k: integer;
+  Temp: string;
+begin
+  for i := Grid.FixedRows to Grid.RowCount - 2 do
+    for j := Grid.FixedRows to Grid.RowCount - 2 do
+      if CompareRows(j, j + 1, Grid, ColIndex) > 0 then
+      begin
+        // Swap the rows
+        for k := 0 to Grid.ColCount - 1 do
+        begin
+          Temp := Grid.Cells[k, j];
+          Grid.Cells[k, j] := Grid.Cells[k, j + 1];
+          Grid.Cells[k, j + 1] := Temp;
+        end;
+      end;
+end;
+
+
 procedure TForm1.ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
 var
   ClientSocket: longint;
@@ -145,10 +307,10 @@ begin
 
     for i := 0 to Ports.Count - 1 do
     begin
-      if (unit2.stoppressed=1) then
+      if (unit2.stoppressed = 1) then
       begin
 
-      break;
+        break;
       end;
       if TryStrToInt(Ports[i], Port) then
       begin
@@ -178,7 +340,7 @@ begin
           FormScanResults.ProgressBar1.refresh;
           FormScanResults.Button1.refresh;
           resultsgrid.Refresh;
-          application.processmessages;
+          application.ProcessMessages;
 
           fpshutdown(ClientSocket, 2);
           CloseSocket(ClientSocket);
@@ -253,11 +415,17 @@ procedure TForm1.ButtonScanPortsClick(Sender: TObject);
 var
   SelectedIP, PortList: string;
   SelectedRow: integer;
+  PortListString: string;
+  PortArray: array of integer;
+  PortStr: string;
+  i, PortNumber: integer;
 begin
-  PortList := '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,'
-    + '993,995,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
-    + '5432,5900,6001,8080,8443,10000';
-     unit2.stoppressed:=0;
+  PortListstring :=
+    '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,' +
+    '993,995,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
+    +
+    '5432,5900,6001,8080,8443,10000';
+  unit2.stoppressed := 0;
 
   // Check if a row is selected
   SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
@@ -284,14 +452,29 @@ begin
 
     FormScanResults.edit1.Text := 'Scanning Ports!';
     formscanresults.edit1.Refresh;
-    ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
-    FormScanResults.StringGridResults.AutoSizeColumns;
-    if (unit2.stoppressed = 0) then FormScanResults.edit1.Text := 'Complete!'
-    else
+
+    // Split the string and convert each part to an integer
+    with TStringList.Create do
+    try
+      Delimiter := ',';
+      DelimitedText := PortListString;
+      SetLength(PortArray, Count);
+
+      for i := 0 to Count - 1 do
       begin
-    FormScanResults.edit1.Text := 'Stopped!';
-    FormScanResults.progressbar1.Position:=0;
+        if TryStrToInt(Strings[i], PortNumber) then
+          PortArray[i] := PortNumber
+        else
+          raise Exception.Create('Invalid port number: ' + Strings[i]);
       end;
+    finally
+      Free;
+    end;
+
+
+    StartPortScanning(SelectedIP, PortArray); // Example IP and ports
+    //ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
+
     // Show the results
     // FormScanResults.ShowModal;
   end
@@ -723,7 +906,7 @@ var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
 begin
-stoppressed:=0;
+  stoppressed := 0;
   // Initialize the critical section for thread synchronization
   ThreadLock := TCriticalSection.Create;
 
