@@ -109,7 +109,6 @@ type
     function CalculateNumberOfIPsInRange: integer;
     function GetLocalIPAddress: string;
     procedure FinalizeTasks;
-    procedure ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
     function GetPortDescription(Port: integer): string;
     procedure ButtonScanPortsClick(Sender: TObject);
     procedure StartPortScanning(const IPAddress: string; Ports: array of integer);
@@ -123,14 +122,12 @@ type
     ActiveScanThreads: integer;
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
-    // procedure SortGrid;
     procedure StartThreads;
     procedure StopThreads;
     procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
     procedure PortScanMenuItemClick(Sender: TObject);
-    // procedure UpdateGrid(IP: String; Port: Integer; Description: String; Status: String);
-  public
+     public
     { Public declarations }
   end;
 
@@ -238,18 +235,16 @@ begin
     FormScanResults.edit1.Text := 'Stopped!';
     FormScanResults.progressbar1.Position := 0;
   end;
-
+    TrimAppMemorySize;
 end;
 end;
 procedure TForm1.SortGridports;
 begin
   // Implement your sorting logic here
   // Example: Sort by port number (column index 1)
-  //formscanresults.StringGridResults.SortOrder := soAscending;
   SortStringGrid2(FormScanResults.StringGridResults, 1); // Sort by column 1
 
-  //formscanresults.StringGridResults.refresh;
-end;
+  end;
 
 function tform1.CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
   const ColIndex: integer): integer;
@@ -284,76 +279,6 @@ begin
         end;
       end;
 end;
-
-
-procedure TForm1.ScanPorts(const IPAddress, PortList: string; ResultsGrid: TStringGrid);
-var
-  ClientSocket: longint;
-  SockAddr: TInetSockAddr;
-  Ports: TStringList;
-  i, Port, PercentComplete: integer;
-  PortStatus, PortDescription: string;
-begin
-  Ports := TStringList.Create;
-
-  FormScanResults.ProgressBar1.Min := 0;
-  FormScanResults.ProgressBar1.Max := 100;
-  FormScanResults.ProgressBar1.Position := 0;
-
-
-  try
-    Ports.CommaText := PortList;
-    // Splitting the comma-delimited list into individual ports
-
-    for i := 0 to Ports.Count - 1 do
-    begin
-      if (unit2.stoppressed = 1) then
-      begin
-
-        break;
-      end;
-      if TryStrToInt(Ports[i], Port) then
-      begin
-        ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if ClientSocket <> -1 then
-        begin
-          SockAddr.sin_family := AF_INET;
-          SockAddr.sin_port := htons(Port);
-          SockAddr.sin_addr.s_addr := inet_addr(PChar(IPAddress));
-
-          if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
-            PortStatus := 'Open'
-          else
-            PortStatus := 'Closed';
-
-          PortDescription := GetPortDescription(Port);
-
-          // Update the grid
-
-          ResultsGrid.RowCount := ResultsGrid.RowCount + 1;
-          ResultsGrid.Cells[0, ResultsGrid.RowCount - 1] := IPAddress;
-          ResultsGrid.Cells[1, ResultsGrid.RowCount - 1] := IntToStr(Port);
-          ResultsGrid.Cells[2, ResultsGrid.RowCount - 1] := PortStatus;
-          ResultsGrid.Cells[3, ResultsGrid.RowCount - 1] := PortDescription;
-          PercentComplete := (i + 1) * 100 div Ports.Count;
-          FormScanResults.ProgressBar1.Position := PercentComplete;
-          FormScanResults.ProgressBar1.refresh;
-          FormScanResults.Button1.refresh;
-          resultsgrid.Refresh;
-          application.ProcessMessages;
-
-          fpshutdown(ClientSocket, 2);
-          CloseSocket(ClientSocket);
-        end;
-      end;
-    end;
-  finally
-    Ports.Free;
-  end;
-end;
-
-
-
 
 function TForm1.GetPortDescription(Port: integer): string;
 begin
@@ -413,11 +338,11 @@ end;
 
 procedure TForm1.ButtonScanPortsClick(Sender: TObject);
 var
-  SelectedIP, PortList: string;
+  SelectedIP: string;
   SelectedRow: integer;
   PortListString: string;
   PortArray: array of integer;
-  PortStr: string;
+
   i, PortNumber: integer;
 begin
   PortListstring :=
@@ -435,7 +360,6 @@ begin
     // Assuming IPs are in the first column
 
     FormScanResults.Show;
-    // FormScanResults.ShowModal;
 
     // Prepare the StringGrid on FormScanResults
     with FormScanResults.StringGridResults do
@@ -473,10 +397,7 @@ begin
 
 
     StartPortScanning(SelectedIP, PortArray); // Example IP and ports
-    //ScanPorts(SelectedIP, PortList, FormScanResults.StringGridResults);
 
-    // Show the results
-    // FormScanResults.ShowModal;
   end
   else
     ShowMessage('Please select a row with an IP address.');
