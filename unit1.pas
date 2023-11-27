@@ -16,7 +16,7 @@ var
   MaxThreads: integer = 255; // Set your max threads here
   IPList: TStringList;
   ActiveTasks: integer = 0;
-  ProcessedIPs: integer = 0;
+  //ProcessedIPs: integer = 0;
 
 type
   TScanResult = record
@@ -467,7 +467,7 @@ function TPingTaskQueue.TryGetTask(out Task: TPingTask): boolean;
 var
   TaskPtr: PPingTask;
 begin
-  Lock;
+  FCriticalSection.Acquire;
   try
     Result := FTaskList.Count > 0;
     if Result then
@@ -478,7 +478,7 @@ begin
       FTaskList.Delete(0);
     end;
   finally
-    Unlock;
+    FCriticalSection.Release;
   end;
 end;
 
@@ -488,11 +488,11 @@ var
 begin
   New(NewTask);
   NewTask^ := Task;
-  Lock;
+  FCriticalSection.Acquire;
   try
     FTaskList.Add(NewTask);
   finally
-    Unlock;
+    FCriticalSection.Release;
   end;
 end;
 
@@ -716,7 +716,7 @@ begin
     IPAddress.s_addr := htonl(I); // Convert back to network byte order
     IPList.Add(inet_ntoa(IPAddress)); // Convert to string and add to the list
   end;
-  ProcessedIPs := 0;
+  //ProcessedIPs := 0;
   // Enqueue tasks into the TaskQueue
   for startIP in IPList do
   begin
