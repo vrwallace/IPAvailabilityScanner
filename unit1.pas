@@ -180,7 +180,7 @@ begin
   end;
 end;
 
-  procedure TPortScanThread.DoScan;
+procedure TPortScanThread.DoScan;
 var
   ClientSocket: longint;
   SockAddr: TInetSockAddr;
@@ -191,9 +191,9 @@ begin
 
   try
     // Set the timeout for the socket
-    if form1.SpinEdit1.Value>0 then TimeVal.tv_sec := form1.SpinEdit1.value div  1000
+    if form1.SpinEdit1.Value > 0 then TimeVal.tv_sec := form1.SpinEdit1.Value div 1000
     else
-    TimeVal.tv_sec := 1000;
+      TimeVal.tv_sec := 1000;
 
     // Timeout in seconds
     TimeVal.tv_usec := 0; // Additional timeout in microseconds
@@ -406,6 +406,7 @@ begin
       Cells[3, 0] := 'Description';
 
     end;
+    FormScanResults.StringGridResults.AutoSizeColumns;
 
     // Perform the port scan for the selected IP
 
@@ -907,7 +908,7 @@ begin
     Cells[2, 0] := 'Name';
     Cells[3, 0] := 'Mac Address';
   end;
-
+  stringgrid1.AutoSizeColumns;
 
   // Other initializations...
 end;
