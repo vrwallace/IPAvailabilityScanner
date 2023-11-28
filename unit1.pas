@@ -180,19 +180,33 @@ begin
   end;
 end;
 
-procedure TPortScanThread.DoScan;
+  procedure TPortScanThread.DoScan;
 var
   ClientSocket: longint;
   SockAddr: TInetSockAddr;
+  TimeVal: TTimeVal;
 begin
   ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if ClientSocket = -1 then Exit;
 
   try
+    // Set the timeout for the socket
+    if form1.SpinEdit1.Value>0 then TimeVal.tv_sec := form1.SpinEdit1.value div  1000
+    else
+    TimeVal.tv_sec := 1000;
+
+    // Timeout in seconds
+    TimeVal.tv_usec := 0; // Additional timeout in microseconds
+
+    // Set the receive and send timeout for the socket
+    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
+    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
+
     SockAddr.sin_family := AF_INET;
     SockAddr.sin_port := htons(FScanResult.Port);
     SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
 
+    // Attempt to connect with a timeout
     if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
       FScanResult.Status := 'Open'
     else
@@ -203,6 +217,7 @@ begin
     CloseSocket(ClientSocket);
   end;
 end;
+
 
 procedure TPortScanThread.UpdateGridWrapper;
 begin
