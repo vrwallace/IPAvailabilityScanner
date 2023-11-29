@@ -99,7 +99,7 @@ begin
         22: URL := 'ssh://' + IPAddress + ':' + IntToStr(Port);
         21: URL := 'ftp://' + IPAddress + ':' + IntToStr(Port);
         23: URL := 'telnet://' + IPAddress + ':' + IntToStr(Port);
-        445: URL := 'smb://' + IPAddress; // SMB Protocol
+        445: URL := '\\' + IPAddress; // SMB Protocol
         3389: URL := 'rdp://' + IPAddress + ':' + IntToStr(Port);
         3306: URL := 'mysql://' + IPAddress + ':' + IntToStr(Port); // MySQL
         1433: URL := 'mssql://' + IPAddress + ':' + IntToStr(Port); // Microsoft SQL Server
