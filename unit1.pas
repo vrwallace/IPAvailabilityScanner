@@ -23,6 +23,7 @@ type
     IPAddress: string;
     Port: integer;
     Status: string;
+    Banner: string;
   end;
 
   TPortScanThread = class(TThread)
@@ -31,6 +32,7 @@ type
     procedure UpdateGrid;
     procedure UpdateGridWrapper;
     procedure DoScan;
+     function HexToString(H: string): string;
   protected
     procedure Execute; override;
   public
@@ -180,27 +182,129 @@ begin
   end;
 end;
 
-procedure TPortScanThread.DoScan;
+//procedure TPortScanThread.DoScan;
+//var
+//  ClientSocket: longint;
+//  SockAddr: TInetSockAddr;
+//  TimeVal: TTimeVal;
+//begin
+//  ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+//  if ClientSocket = -1 then Exit;
+//
+//  try
+//    // Set the timeout for the socket
+//    if form1.SpinEdit1.Value > 0 then TimeVal.tv_sec := form1.SpinEdit1.Value div 1000
+//    else
+//      TimeVal.tv_sec := 1000;
+//
+//    // Timeout in seconds
+//    TimeVal.tv_usec := 0; // Additional timeout in microseconds
+//
+//    // Set the receive and send timeout for the socket
+//    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
+//    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
+//
+//    SockAddr.sin_family := AF_INET;
+//    SockAddr.sin_port := htons(FScanResult.Port);
+//    SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
+//
+//    // Attempt to connect with a timeout
+//    if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
+//      FScanResult.Status := 'Open'
+//    else
+//      FScanResult.Status := 'Closed';
+//
+//  finally
+//    fpshutdown(ClientSocket, SHUT_RDWR);
+//    CloseSocket(ClientSocket);
+//  end;
+//end;
+    procedure TPortScanThread.DoScan;
 var
   ClientSocket: longint;
   SockAddr: TInetSockAddr;
   TimeVal: TTimeVal;
+  TriggerString, Response: string;
+  BytesSent, BytesReceived: Integer;
+  Buffer: array[1..2048] of Char;
+  trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
+
+
+
 begin
+
+
+  trig_null := '';
+  trig_http := 'GET / HTTP/1.0'#13#10#13#10;
+  trig_mssql := HexToString('100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300');
+  trig_ldap := HexToString('300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
+  trig_smtp := 'HELO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10;
+  trig_fw1admin := '???`r`n?`r`n';
+  trig_nbns := HexToString('a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
+  trig_ntp := HexToString('e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');
+  trig_nntp := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10;
+  trig_pop := 'QUIT'#13#10;
+  trig_finger := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10;
+  trig_snmp := HexToString('302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500');
+  trig_telnet := #13#10;
+  trig_ftp := 'HELP'#10'USER anonymous'#10'PASS banner@grab.com'#10'QUIT'#10;
+  trig_echo := 'Echo'#13#10;
+  trig_imap := 'CAPABILITY'#13#10;
+  // Rest of your code
+
+  // Initialize TriggerString based on the port
+  case FScanResult.Port of
+    80, 443, 8080, 8081, 8000, 8888:
+      TriggerString := trig_http; // HTTP and common alternate ports
+    21, 20:
+      TriggerString := trig_ftp; // FTP
+    22:
+      TriggerString := ''; // SSH, typically doesn't have a banner
+    25, 465, 587:
+      TriggerString := trig_smtp; // SMTP and related email ports
+    23:
+      TriggerString := trig_telnet; // Telnet
+    110, 995:
+      TriggerString := trig_pop; // POP3
+    143, 993:
+      TriggerString := trig_imap; // IMAP
+    119:
+      TriggerString := trig_nntp; // NNTP
+    161:
+      TriggerString := trig_snmp; // SNMP
+    389, 636:
+      TriggerString := trig_ldap; // LDAP
+    1433:
+      TriggerString := trig_mssql; // Microsoft SQL Server
+    3306:
+      TriggerString := ''; // MySQL, typically doesn't use a banner
+    5432:
+      TriggerString := ''; // PostgreSQL, typically doesn't use a banner
+    7, 9:
+      TriggerString := trig_echo; // Echo
+    137:
+      TriggerString := trig_nbns; // NetBIOS Name Service
+    123:
+      TriggerString := trig_ntp; // NTP
+    79:
+      TriggerString := trig_finger; // Finger
+    // Add more ports and triggers as needed
+    else
+      TriggerString := '';
+  end;
+
   ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if ClientSocket = -1 then Exit;
 
   try
-    // Set the timeout for the socket
-    if form1.SpinEdit1.Value > 0 then TimeVal.tv_sec := form1.SpinEdit1.Value div 1000
-    else
-      TimeVal.tv_sec := 1000;
-
-    // Timeout in seconds
-    TimeVal.tv_usec := 0; // Additional timeout in microseconds
+     // Set the timeout for the socket
+    TimeVal.tv_sec := Form1.SpinEdit1.Value div 1000; // Timeout in seconds
+    TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000; // Remaining milliseconds converted to microseconds
 
     // Set the receive and send timeout for the socket
     fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
     fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
+
 
     SockAddr.sin_family := AF_INET;
     SockAddr.sin_port := htons(FScanResult.Port);
@@ -208,7 +312,26 @@ begin
 
     // Attempt to connect with a timeout
     if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
-      FScanResult.Status := 'Open'
+    begin
+      FScanResult.Status := 'Open';
+
+      // Send the trigger
+      BytesSent := fpsend(ClientSocket, @TriggerString[1], Length(TriggerString), 0);
+
+      if BytesSent > 0 then
+      begin
+        // Wait for the response
+        BytesReceived := fprecv(ClientSocket, @Buffer, SizeOf(Buffer), 0);
+        if BytesReceived > 0 then
+        begin
+          SetLength(Response, BytesReceived);
+          Move(Buffer, Response[1], BytesReceived);
+
+          // Save the response as the banner
+          FScanResult.Banner := Response;
+        end;
+      end;
+    end
     else
       FScanResult.Status := 'Closed';
 
@@ -224,16 +347,29 @@ begin
   UpdateGrid;
 end;
 
+//procedure TPortScanThread.UpdateGrid;
+//begin
+//  with Formscanresults.StringGridResults do
+//  begin
+//    RowCount := RowCount + 1;
+//    Cells[0, RowCount - 1] := FScanResult.IPAddress;
+//    Cells[1, RowCount - 1] := IntToStr(FScanResult.Port);
+//    Cells[2, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
+//    Cells[3, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
+//
+//  end;
+//end;
+
 procedure TPortScanThread.UpdateGrid;
 begin
-  with Formscanresults.StringGridResults do
+  with FormScanResults.StringGridResults do
   begin
     RowCount := RowCount + 1;
     Cells[0, RowCount - 1] := FScanResult.IPAddress;
     Cells[1, RowCount - 1] := IntToStr(FScanResult.Port);
     Cells[2, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
     Cells[3, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
-
+    Cells[4, RowCount - 1] := FScanResult.Banner; // Banner column
   end;
 end;
 
@@ -404,6 +540,8 @@ begin
       Cells[1, 0] := 'Port';
       Cells[2, 0] := 'Status';
       Cells[3, 0] := 'Description';
+      Cells[4, 0] := 'Banner';
+
 
     end;
     FormScanResults.StringGridResults.AutoSizeColumns;
@@ -1101,5 +1239,17 @@ begin
   // It's not typically needed in a memory trimming routine
   // Application.ProcessMessages;
 end;
-
+      function TPortScanThread.HexToString(H: string): string;
+var
+  I: Integer;
+  B: byte;
+begin
+  Result := '';
+  H := H.Replace(' ', ''); // Remove spaces if any
+  for I := 1 to Length(H) div 2 do
+  begin
+    B := StrToInt('$' + Copy(H, (I - 1) * 2 + 1, 2));
+    Result := Result + Chr(B);
+  end;
+end;
 end.
