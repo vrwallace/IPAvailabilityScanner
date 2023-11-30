@@ -8,6 +8,7 @@ object FormScanResults: TFormScanResults
   Caption = 'Port Scan Results'
   ClientHeight = 325
   ClientWidth = 317
+  Color = clWhite
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '3.0.0.2'

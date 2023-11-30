@@ -8,6 +8,7 @@ object Form1: TForm1
   Caption = 'IP Availability Scanner v1.1mq'
   ClientHeight = 383
   ClientWidth = 360
+  Color = clWhite
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
