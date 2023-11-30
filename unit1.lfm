@@ -123,7 +123,9 @@ object Form1: TForm1
     Height = 128
     Top = 192
     Width = 335
+    AlternateColor = clSilver
     ColCount = 4
+    FixedColor = clGray
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
     RowCount = 1
