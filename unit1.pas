@@ -254,7 +254,7 @@ begin
 
   // Initialize TriggerString based on the port
   case FScanResult.Port of
-    80, 443, 8080, 8081, 8000, 8888:
+    80, 443, 2082,2083,2086,2087,2095,2096,8080, 8081, 8000,8443, 8888,10000:
       TriggerString := trig_http; // HTTP and common alternate ports
     21, 20:
       TriggerString := trig_ftp; // FTP
