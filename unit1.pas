@@ -853,13 +853,13 @@ begin
     SortStringGrid;
     edit3.Text := 'Auto Sizing Comumns';
     StringGrid1.AutoSizeColumns;
-    edit3.Text := 'Trim App Memory Size';
-    trimappmemorysize;
+    //edit3.Text := 'Trim App Memory Size';
+
     Edit3.Text := 'Complete!';
     finally
       ThreadLock.Release;
     end;
-
+    trimappmemorysize;
 
 end;
 
