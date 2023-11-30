@@ -543,7 +543,7 @@ begin
       // Synchronize the UI update
       Synchronize(@UpdateUI);
 
-      Dec(ActiveTasks);
+      InterlockedDecrement(ActiveTasks);
 
     end
     else
@@ -695,7 +695,7 @@ begin
     Cells[0, 0] := 'IP';
     Cells[1, 0] := 'Reply';
     Cells[2, 0] := 'Name';
-    Cells[3, 0] := 'Mac Address';
+    Cells[3, 0] := 'MAC Address';
   end;
 
   // Get the start and end IPs from the user inputs
@@ -737,7 +737,7 @@ begin
   for startIP in IPList do
   begin
     Task.IPAddress := startIP;
-    Inc(ActiveTasks);
+    InterlockedIncrement(ActiveTasks);
     TaskQueue.AddTask(Task);
 
   end;
@@ -906,7 +906,7 @@ begin
     Cells[0, 0] := 'IP';
     Cells[1, 0] := 'Reply';
     Cells[2, 0] := 'Name';
-    Cells[3, 0] := 'Mac Address';
+    Cells[3, 0] := 'MAC Address';
   end;
   stringgrid1.AutoSizeColumns;
 
