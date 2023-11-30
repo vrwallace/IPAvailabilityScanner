@@ -21,6 +21,7 @@ object FormScanResults: TFormScanResults
     ColCount = 4
     FixedColor = clForm
     FixedCols = 0
+    GridLineColor = clBlack
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
     TabOrder = 0
   end
