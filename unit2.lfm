@@ -19,7 +19,7 @@ object FormScanResults: TFormScanResults
     Width = 304
     AlternateColor = clSilver
     ColCount = 4
-    FixedColor = clGray
+    FixedColor = clForm
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
     TabOrder = 0
