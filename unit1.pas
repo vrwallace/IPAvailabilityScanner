@@ -553,17 +553,13 @@ begin
       Break;  // Exit the loop if there are no more tasks
     end;
   end;
+   if (ActiveTasks = 0) then
+   begin
 
-  ThreadLock.Acquire;
-  try
+    Synchronize(@Form1.FinalizeTasks);
 
-    if (ActiveTasks = 0) then
-      Synchronize(@Form1.FinalizeTasks);
-  finally
-    ThreadLock.Release;
-  end;
 end;
-
+end;
 
 
 
@@ -850,16 +846,22 @@ end;
 
 procedure TForm1.FinalizeTasks;
 begin
-  if (ActiveTasks = 0) then  // Check if all threads are done
-  begin
+
+
+    ThreadLock.Acquire;
+    try
     SortStringGrid;
     edit3.Text := 'Auto Sizing Comumns';
     StringGrid1.AutoSizeColumns;
     edit3.Text := 'Trim App Memory Size';
     trimappmemorysize;
     Edit3.Text := 'Complete!';
+    ThreadLock.Release;
+     finally
+      ThreadLock.Release;
+    end;
 
-  end;
+
 end;
 
 procedure TForm1.PortScanMenuItemClick(Sender: TObject);
