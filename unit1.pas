@@ -856,8 +856,7 @@ begin
     edit3.Text := 'Trim App Memory Size';
     trimappmemorysize;
     Edit3.Text := 'Complete!';
-    ThreadLock.Release;
-     finally
+    finally
       ThreadLock.Release;
     end;
 
