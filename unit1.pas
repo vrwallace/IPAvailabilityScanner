@@ -25,7 +25,7 @@ type
     Status: string;
     Banner: string;
   end;
-
+  type
   TPortScanThread = class(TThread)
   private
     FScanResult: TScanResult;
@@ -40,13 +40,13 @@ type
   end;
 
 
-
+  type
   // Assuming TPingTask is a simple record for demonstration
   TPingTask = record
     IPAddress: string;
     Data: string;
   end;
-
+  type
   // TPingTaskQueue class definition
   TPingTaskQueue = class
   private
@@ -64,7 +64,7 @@ type
 
     function TryGetTask(out Task: TPingTask): boolean;
   end;
-
+  type
   TPingThread = class(TThread)
   private
     FTask: TPingTask;
@@ -85,7 +85,7 @@ type
 
 
   { TForm1 }
-
+  type
   TForm1 = class(TForm)
     Button1: TButton;
     Button2: TButton;
@@ -182,43 +182,6 @@ begin
   end;
 end;
 
-//procedure TPortScanThread.DoScan;
-//var
-//  ClientSocket: longint;
-//  SockAddr: TInetSockAddr;
-//  TimeVal: TTimeVal;
-//begin
-//  ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-//  if ClientSocket = -1 then Exit;
-//
-//  try
-//    // Set the timeout for the socket
-//    if form1.SpinEdit1.Value > 0 then TimeVal.tv_sec := form1.SpinEdit1.Value div 1000
-//    else
-//      TimeVal.tv_sec := 1000;
-//
-//    // Timeout in seconds
-//    TimeVal.tv_usec := 0; // Additional timeout in microseconds
-//
-//    // Set the receive and send timeout for the socket
-//    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
-//    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
-//
-//    SockAddr.sin_family := AF_INET;
-//    SockAddr.sin_port := htons(FScanResult.Port);
-//    SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
-//
-//    // Attempt to connect with a timeout
-//    if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
-//      FScanResult.Status := 'Open'
-//    else
-//      FScanResult.Status := 'Closed';
-//
-//  finally
-//    fpshutdown(ClientSocket, SHUT_RDWR);
-//    CloseSocket(ClientSocket);
-//  end;
-//end;
     procedure TPortScanThread.DoScan;
 var
   ClientSocket: longint;
@@ -227,14 +190,14 @@ var
   TriggerString, Response: string;
   BytesSent, BytesReceived: Integer;
   Buffer: array[1..2048] of Char;
-  trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
+ // trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
 
 
 
 begin
 
 
-  trig_null := '';
+ // trig_null := '';
   //trig_http := 'GET / HTTP/1.0'#13#10#13#10;
   //trig_mssql := HexToString('100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300');
   //trig_ldap := HexToString('300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
@@ -346,19 +309,6 @@ procedure TPortScanThread.UpdateGridWrapper;
 begin
   UpdateGrid;
 end;
-
-//procedure TPortScanThread.UpdateGrid;
-//begin
-//  with Formscanresults.StringGridResults do
-//  begin
-//    RowCount := RowCount + 1;
-//    Cells[0, RowCount - 1] := FScanResult.IPAddress;
-//    Cells[1, RowCount - 1] := IntToStr(FScanResult.Port);
-//    Cells[2, RowCount - 1] := FScanResult.Status; // "Open" or "Closed"
-//    Cells[3, RowCount - 1] := Form1.GetPortDescription(FScanResult.Port);
-//
-//  end;
-//end;
 
 procedure TPortScanThread.UpdateGrid;
 begin
