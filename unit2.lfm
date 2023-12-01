@@ -1,10 +1,8 @@
 object FormScanResults: TFormScanResults
-  Left = 432
+  Left = 1102
   Height = 325
-  Top = 134
+  Top = 162
   Width = 317
-  BorderIcons = [biSystemMenu, biMinimize]
-  BorderStyle = bsSingle
   Caption = 'Port Scan Results'
   ClientHeight = 325
   ClientWidth = 317
@@ -18,6 +16,7 @@ object FormScanResults: TFormScanResults
     Top = 8
     Width = 304
     AlternateColor = clSilver
+    Anchors = [akTop, akLeft, akRight, akBottom]
     FixedColor = clForm
     FixedCols = 0
     GridLineColor = clBlack
@@ -29,6 +28,7 @@ object FormScanResults: TFormScanResults
     Height = 23
     Top = 288
     Width = 304
+    Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
     TabOrder = 1
   end
@@ -37,6 +37,7 @@ object FormScanResults: TFormScanResults
     Height = 20
     Top = 264
     Width = 304
+    Anchors = [akLeft, akRight, akBottom]
     TabOrder = 2
   end
   object Button1: TButton
@@ -44,6 +45,7 @@ object FormScanResults: TFormScanResults
     Height = 25
     Top = 232
     Width = 75
+    Anchors = [akRight, akBottom]
     Caption = 'Stop'
     TabOrder = 3
     OnClick = Button1Click

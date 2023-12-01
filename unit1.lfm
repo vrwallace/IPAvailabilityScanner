@@ -1,10 +1,8 @@
 object Form1: TForm1
   Left = 687
   Height = 383
-  Top = 219
+  Top = 221
   Width = 360
-  BorderIcons = [biSystemMenu, biMinimize]
-  BorderStyle = bsSingle
   Caption = 'IP Availability Scanner v1.1mq'
   ClientHeight = 383
   ClientWidth = 360
@@ -99,6 +97,7 @@ object Form1: TForm1
     Height = 23
     Top = 352
     Width = 335
+    Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
     TabOrder = 5
   end
@@ -125,6 +124,7 @@ object Form1: TForm1
     Top = 192
     Width = 335
     AlternateColor = clSilver
+    Anchors = [akTop, akLeft, akRight, akBottom]
     ColCount = 4
     FixedColor = clForm
     FixedCols = 0
@@ -138,6 +138,7 @@ object Form1: TForm1
     Height = 20
     Top = 328
     Width = 335
+    Anchors = [akLeft, akRight, akBottom]
     TabOrder = 9
   end
 end
