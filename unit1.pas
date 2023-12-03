@@ -131,7 +131,7 @@ type
     ThreadPool: array of TPingThread;
     procedure StartThreads;
     procedure StopThreads;
-    procedure DumpExceptionCallStack(E: Exception);
+    //procedure DumpExceptionCallStack(E: Exception);
     procedure CopyMenuItemClick(Sender: TObject);
     procedure PortScanMenuItemClick(Sender: TObject);
     procedure UpdateProgressBar;
@@ -145,14 +145,21 @@ function SendArp(DestIP, SrcIP: ULONG; pMacAddr: pointer; PhyAddrLen: pointer): 
   stdcall; external 'iphlpapi.dll' Name 'SendARP';
 
 function CompareIPs(const IP1, IP2: string): integer;
-
-
+procedure DumpExceptionCallStack(E: Exception);
+//procedure GlobalExceptionHandler(Sender: TObject; E: Exception);
 var
   Form1: TForm1;
 
 implementation
 
 {$R *.lfm}
+
+//procedure GlobalExceptionHandler(Sender: TObject; E: Exception);
+//begin
+//  DumpExceptionCallStack(E);
+//  // You can add additional handling here if needed
+//end;
+
 
 
 constructor TPortScanThread.Create(const IPAddress: string; Port: integer);
@@ -918,7 +925,7 @@ end;
 
 
 
-procedure TForm1.DumpExceptionCallStack(E: Exception);
+procedure DumpExceptionCallStack(E: Exception);
 var
   I: integer;
   Frames: PPointer;
@@ -999,7 +1006,7 @@ begin
   edit1.Text := GetLocalIPAddress;
   edit2.Text := GetLocalIPAddress;
 
-  SpinEdit1.Value := 1000;
+  SpinEdit1.Value := 4000;
   with StringGrid1 do
   begin
     Cells[0, 0] := 'IP';

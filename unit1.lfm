@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 383
   Top = 221
   Width = 360
-  Caption = 'IP Availability Scanner v1.1mq'
+  Caption = 'IP Availability Scanner v1.12mq'
   ClientHeight = 383
   ClientWidth = 360
   Color = clWhite
@@ -83,7 +83,7 @@ object Form1: TForm1
     MinValue = 1
     TabStop = False
     TabOrder = 4
-    Value = 1000
+    Value = 4000
   end
   object Label4: TLabel
     Left = 198
