@@ -5,8 +5,9 @@ unit Unit2;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
+ Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
   clipbrd, ComCtrls, Windows, ShellAPI;
+
 
 var
   stoppressed: integer = 0;
@@ -26,7 +27,7 @@ type
     procedure CopySelectedCells(Sender: TObject);
     procedure OpenInDefaultApp(Sender: TObject);
     procedure OpenURL(URL: string);
-    //procedure FormWindowStateChange(Sender: TObject);
+    procedure FormWindowStateChange(Sender: TObject);
   private
 
   public
@@ -48,15 +49,15 @@ begin
   ShellExecute(0, 'open', PChar(URL), nil, nil, SW_SHOWNORMAL);
 end;
 
-// procedure TFormScanResults.FormWindowStateChange(Sender: TObject);
-//begin
-//  if Self.WindowState = wsMinimized then
-//  begin
-//    Self.WindowState := wsNormal;
-//    Self.Hide;
-//    Self.ShowInTaskBar := stNever;
-//  end;
-//end;
+ procedure TFormScanResults.FormWindowStateChange(Sender: TObject);
+begin
+  //if FormScanResults.WindowState = wsMinimized then
+  //begin
+  //  FormScanResults.WindowState := wsNormal;
+  //  FormScanResults.Hide;
+  //  FormScanResults.ShowInTaskBar := stAlways;
+  //end;
+end;
 procedure TFormScanResults.FormCreate(Sender: TObject);
 var
   MenuItemcopy, MenuItemOpen: TMenuItem;

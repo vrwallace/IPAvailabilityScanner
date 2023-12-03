@@ -9,7 +9,9 @@ object Form1: TForm1
   Color = clWhite
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
+  ShowInTaskBar = stAlways
   LCLVersion = '3.0.0.2'
   object Edit1: TEdit
     Left = 102

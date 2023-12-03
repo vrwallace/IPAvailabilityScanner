@@ -458,12 +458,12 @@ end;
 
 procedure TForm1.FormWindowStateChange(Sender: TObject);
 begin
-  if Self.WindowState = wsMinimized then
-  begin
-    Self.WindowState := wsNormal;
-    Self.Hide;
-    Self.ShowInTaskBar := stNever;
-  end;
+  //if Self.WindowState = wsMinimized then
+  //begin
+  //  Self.WindowState := wsNormal;
+  //  Self.Hide;
+  //  Self.ShowInTaskBar :=stAlways;
+  //end;
 end;
 
 

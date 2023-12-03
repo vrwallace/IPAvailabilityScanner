@@ -8,7 +8,9 @@ object FormScanResults: TFormScanResults
   ClientWidth = 317
   Color = clWhite
   OnCreate = FormCreate
+  OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
+  ShowInTaskBar = stAlways
   LCLVersion = '3.0.0.2'
   object StringGridResults: TStringGrid
     Left = 8
