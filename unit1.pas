@@ -119,6 +119,7 @@ type
     procedure SortStringGrid2(Grid: TStringGrid; ColIndex: integer);
     function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
       const ColIndex: integer): integer;
+      procedure FormWindowStateChange(Sender: TObject);
   private
     CompletedScans: integer;
 
@@ -455,7 +456,15 @@ begin
   end;
 end;
 
-
+procedure TForm1.FormWindowStateChange(Sender: TObject);
+begin
+  if Self.WindowState = wsMinimized then
+  begin
+    Self.WindowState := wsNormal;
+    Self.Hide;
+    Self.ShowInTaskBar := stNever;
+  end;
+end;
 
 
 procedure TForm1.ButtonScanPortsClick(Sender: TObject);
@@ -480,6 +489,7 @@ begin
     SelectedIP := StringGrid1.Cells[0, SelectedRow];
     // Assuming IPs are in the first column
 
+    FormScanResults.WindowState := wsnormal;
     FormScanResults.Show;
 
     // Prepare the StringGrid on FormScanResults
