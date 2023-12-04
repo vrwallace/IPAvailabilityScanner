@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2;
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb;
 
 var
 
@@ -120,6 +120,9 @@ type
     function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
       const ColIndex: integer): integer;
       procedure FormWindowStateChange(Sender: TObject);
+      procedure LookupMACMenuItemClick(Sender: TObject);
+      //function LookupMAC(macPrefix: String; out ShortName, LongName: String): Boolean;
+     function LookupMAC(macPrefix: String; out ShortName, LongName: String; dbname: String): Boolean;
   private
     CompletedScans: integer;
 
@@ -977,6 +980,7 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
+  LookupMACMenuItem: TMenuItem;
 begin
   stoppressed := 0;
   // Initialize the critical section for thread synchronization
@@ -996,6 +1000,15 @@ begin
   PortScanMenuItem.Caption := 'Scan Ports (Single)';
   PortScanMenuItem.OnClick := @PortScanMenuItemClick;
   StringGrid1.PopupMenu.Items.Add(PortScanMenuItem);
+
+   // Initialize the popup menu and its item
+
+  LookupMACMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
+  LookupMACMenuItem.Caption := 'Look up Manufacturer (Single)';
+  LookupMACMenuItem.OnClick := @LookupMACMenuItemClick;
+  StringGrid1.PopupMenu.Items.Add(LookupMACMenuItem);
+
+
   // Create the copy menu item
   CopyMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
   CopyMenuItem.Caption := 'Copy (Multiple)';
@@ -1019,7 +1032,85 @@ begin
   // Other initializations...
 end;
 
+ procedure TForm1.LookupMACMenuItemClick(Sender: TObject);
+var
+  MACAddress: String;
+  ShortName, LongName: String;
+  MACPrefix,dbname,dllname: String;
+begin
+  if StringGrid1.Row >= 0 then
+  begin
+    MACAddress := StringGrid1.Cells[3, StringGrid1.Row]; // Assuming MAC is in the 5th column
+    // Replace hyphens with colons and extract the MAC prefix (first 8 characters)
 
+    if Pos('-', macAddress) = 3 then
+    begin
+
+    MACPrefix := StringReplace(Copy(MACAddress, 1, 8), '-', ':', [rfReplaceAll]);
+    dbname:='mac.db';
+    dllname:='sqlite3.dll';
+    if FileExists(dbname) then
+    begin
+    if FileExists(dllname) then
+    begin
+    // Call your function to look up the MAC manufacturer using the prefix
+    LookupMAC(MACPrefix, ShortName, LongName, dbname);
+
+    // Show the results
+    ShowMessage('MAC Prefix: ' + MACPrefix + sLineBreak + 'Short Name: ' + ShortName + sLineBreak + 'Long Name: ' + LongName);
+    end
+    else showmessage(dllname+' Not found did you place it in the same directory as the exe?');
+
+    end
+    else showmessage(dbname+' Not found did you place it in the same directory as the exe?');
+
+    end
+    else showmessage(macprefix+ ' Not a valid MAC address!');
+end;
+end;
+
+  function tform1.LookupMAC(macPrefix: String; out ShortName, LongName: String; dbname: String): Boolean;
+var
+  dbConnection: TSQLite3Connection;
+  sqlTransaction: TSQLTransaction;
+  sqlCommand: TSQLQuery;
+begin
+  ShortName := '';
+  LongName := '';
+  Result := False;
+
+  // Initialize database connection
+  dbConnection := TSQLite3Connection.Create(nil);
+  sqlTransaction := TSQLTransaction.Create(dbConnection);
+  sqlCommand := TSQLQuery.Create(nil);
+
+  try
+    dbConnection.DatabaseName := dbname; // Set your database path
+    dbConnection.Connected := True;
+    sqlCommand.Database := dbConnection;
+    sqlCommand.Transaction := sqlTransaction;
+    sqlTransaction.Database := dbConnection;
+    sqlTransaction.StartTransaction;
+
+    // Prepare and execute SQL command
+    sqlCommand.SQL.Text := 'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix';
+    sqlCommand.ParamByName('prefix').AsString := macPrefix;
+    sqlCommand.Open;
+
+    if not sqlCommand.EOF then
+    begin
+      ShortName := sqlCommand.FieldByName('short_name').AsString;
+      LongName := sqlCommand.FieldByName('full_name').AsString;
+      Result := True; // Indicate that a record was found
+    end;
+
+    sqlTransaction.Commit;
+  finally
+    sqlCommand.Free;
+    sqlTransaction.Free;
+    dbConnection.Free;
+  end;
+end;
 
 
 procedure TForm1.CopyMenuItemClick(Sender: TObject);
