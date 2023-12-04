@@ -7,7 +7,10 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb;
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,unit3,blcksock;
+
+//Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  //snmpsend, winsock, synautil,strutils,pingsend, blcksock;
 
 var
 
@@ -16,6 +19,7 @@ var
   MaxThreads: integer = 255; // Set your max threads here
   IPList: TStringList;
   ActiveTasks: integer = 0;
+  crlf:string=#10#13;
   //ProcessedIPs: integer = 0;
 
 type
@@ -123,6 +127,13 @@ type
       procedure LookupMACMenuItemClick(Sender: TObject);
       //function LookupMAC(macPrefix: String; out ShortName, LongName: String): Boolean;
      function LookupMAC(macPrefix: String; out ShortName, LongName: String; dbname: String): Boolean;
+     procedure tracertMenuItemClick(Sender: TObject);
+     procedure PingMenuItemClick(Sender: TObject);
+     procedure buttonpingClick(Sender: TObject);
+     procedure buttontracertClick(Sender: TObject);
+     function PingHostfun2(const Host: string): string;
+     function TraceRouteHostfun(const Host: string): string;
+     function Pingtracertrttl(const Host: string): string;
   private
     CompletedScans: integer;
 
@@ -970,6 +981,16 @@ begin
     trimappmemorysize;
 
 end;
+procedure TForm1.tracertMenuItemClick(Sender: TObject);
+begin
+  ButtonTracertClick(Sender);
+end;
+
+procedure TForm1.PingMenuItemClick(Sender: TObject);
+begin
+  ButtonPingClick(Sender);
+end;
+
 
 procedure TForm1.PortScanMenuItemClick(Sender: TObject);
 begin
@@ -980,7 +1001,7 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
-  LookupMACMenuItem: TMenuItem;
+  LookupMACMenuItem,PingMenuItem,tracertmenuitem: TMenuItem;
 begin
   stoppressed := 0;
   // Initialize the critical section for thread synchronization
@@ -994,6 +1015,20 @@ begin
 
   // Create the popup menu
   StringGrid1.PopupMenu := TPopupMenu.Create(StringGrid1);
+
+  // Create the port scan menu item
+  PingMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
+  PingMenuItem.Caption := 'Ping (Single)';
+  PingMenuItem.OnClick := @PingMenuItemClick;
+  StringGrid1.PopupMenu.Items.Add(PingMenuItem);
+
+  // Create the port scan menu item
+  tracertMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
+  tracertMenuItem.Caption := 'Traceroute (Single)';
+  tracertMenuItem.OnClick := @tracertMenuItemClick;
+  StringGrid1.PopupMenu.Items.Add(tracertMenuItem);
+
+
 
   // Create the port scan menu item
   PortScanMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
@@ -1133,6 +1168,45 @@ begin
   end;
   Clipboard.AsText := S; // Copy to clipboard
 end;
+procedure TForm1.buttonpingClick(Sender: TObject);
+
+
+  var
+        ip:string;
+        begin
+  if StringGrid1.Row >= 0 then
+  begin
+    IP := StringGrid1.Cells[0, StringGrid1.Row];
+    if (pos('.',ip)>0) then
+    begin
+    pingtrace.WindowState:=wsNormal;
+    pingtrace.show;
+ pingtrace.memo1.clear;
+  pingtrace.memo1.Lines.add('Pinging...');
+  application.ProcessMessages;
+  pingtrace.memo1.Lines.add(pinghostfun2(ip));
+    end;
+    end;
+end;
+procedure TForm1.buttontracertClick(Sender: TObject);
+
+      var
+        ip:string;
+        begin
+  if StringGrid1.Row >= 0 then
+
+    IP := StringGrid1.Cells[0, StringGrid1.Row];
+    if (pos('.',ip)>0) then
+    begin
+      pingtrace.WindowState:=wsNormal;
+      pingtrace.show;
+  pingtrace.memo1.clear;
+  pingtrace.memo1.Lines.add('Tracerouting...');
+  application.ProcessMessages;
+  pingtrace.memo1.Lines.add(traceroutehostfun(ip));
+    end;
+    end;
+
 
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
@@ -1310,4 +1384,155 @@ begin
     Result := Result + Chr(B);
   end;
 end;
+  function tform1.PingHostfun2(const Host: string): string;
+var
+  low, high, timetotal, j, success: integer;
+  ipaddrval: string;
+begin
+  Result := '';
+
+  ipaddrval := host;
+  if ipaddrval = '' then
+  begin
+    Result := 'Could not resolve IP Address!';
+    application.ProcessMessages;
+    exit;
+  end;
+
+  with TPINGSend.Create do
+
+    try
+      success := 0;
+      timetotal := 0;
+      low := 99999;
+      high := 0;
+      Result := 'Pinging ' + ipaddrval + ' with ' + IntToStr(PacketSize) +
+        ' bytes of data:' + #13#10;
+      for j := 1 to 4 do
+      begin
+        if Ping(ipaddrval) then
+        begin
+          if ReplyError = IE_NoError then
+          begin
+            Result := Result + 'Reply from ' + ReplyFrom + ': bytes=' +
+              IntToStr(PacketSize) + ' time=' + IntToStr(PingTime) +
+              ' TTL=' + IntToStr(Ord(TTL)) + #13#10;
+            timetotal := timetotal + pingtime;
+            success := success + 1;
+            if pingtime < low then
+              low := pingtime;
+            if pingtime > high then
+              high := pingtime;
+          end
+
+          else
+            Result := Result + 'Reply from ' + ReplyFrom + ': ' +
+              ReplyErrorDesc + #13#10;
+        end
+        else
+        begin
+          Result := Result + 'Ping Failed!' + #13#10;
+          low := 0;
+          break;
+        end;
+      end;
+
+      Result := Result + #13#10 + 'Ping statistics for ' + ipaddrval + ':'#13#10;
+      Result := Result + 'Packets: Sent = ' + IntToStr(j) + ', Received = ' +
+        IntToStr(success) + ', Lost = ' + IntToStr(j - success) +
+        ' (' + IntToStr(trunc((100 - ((success / j) * 100)))) + '% loss)' + #13#10;
+      Result := Result + 'Approximate round trip times in milli-seconds: ' +
+        IntToStr(timetotal) + 'ms' + #13#10;
+      Result := Result + 'Minimum = ' + IntToStr(low) + 'ms, Maximum = ' +
+        IntToStr(high) + 'ms, Average = ' + IntToStr(trunc(timetotal / j)) +
+        'ms' + #13#10;
+
+    finally
+      Free;
+    end;
+end;
+
+function tform1.Pingtracertrttl(const Host: string): string;
+var
+  j: integer;
+
+begin
+
+  Result := '';
+  with TPINGSend.Create do
+    try
+      for j := 1 to 2 do
+      begin
+        if Ping(Host) then
+        begin
+          if ReplyError = IE_NoError then
+          begin
+            Result := Result + IntToStr(PingTime) + ' ms    ';
+          end
+
+          else
+            Result := Result + '*     ';
+        end
+        else
+          Result := Result + '*     ';
+      end;
+
+    finally
+      Free;
+    end;
+end;
+
+function tform1.TraceRouteHostfun(const Host: string): string;
+var
+  Ping: TPingSend;
+  ttl: byte;
+  hopcount: integer;
+  ipaddrval: string;
+begin
+
+  ipaddrval := host;
+  if ipaddrval = '' then
+  begin
+    Result := 'Could not resolve IP Address!';
+    application.ProcessMessages;
+    exit;
+  end;
+
+  hopcount := 0;
+  Result := 'Tracing route to ' + ipaddrval + ' over a maximum of 30 hops' + crlf + crlf;
+
+  Ping := TPINGSend.Create;
+  try
+    ttl := 1;
+    repeat
+      hopcount := hopcount + 1;
+      ping.TTL := ttl;
+      Inc(ttl);
+      if ttl > 31 then
+        Break;
+      if not ping.Ping(ipaddrval) then
+      begin
+        Result := Result + IntToStr(hopcount) + '    ' + cAnyHost + ' Timeout' + CRLF;
+        continue;
+      end;
+      if (ping.ReplyError <> IE_NoError) and (ping.ReplyError <>
+        IE_TTLExceed) then
+      begin
+        Result := Result + IntToStr(hopcount) + '    ' + Ping.ReplyFrom +
+          ' ' + Ping.ReplyErrorDesc + CRLF;
+        break;
+      end;
+
+      Result := Result + IntToStr(hopcount) + '    ' + IntToStr(Ping.PingTime) +
+        ' ms    ' + Pingtracertrttl(Ping.ReplyFrom) + Ping.ReplyFrom + CRLF;
+    until ping.ReplyError = IE_NoError;
+
+    Result := Result + crlf + 'Trace complete.';
+
+  finally
+    Ping.Free;
+  end;
+end;
+
+
 end.

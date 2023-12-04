@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "IP Availability Scanner"
-!define PRODUCT_VERSION "1.13"
+!define PRODUCT_VERSION "1.14"
 !define PRODUCT_PUBLISHER "vonwallace.com"
 !define PRODUCT_WEB_SITE "http://vonwallace.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\ipavail.exe"
@@ -20,7 +20,7 @@
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-;!insertmacro MUI_PAGE_LICENSE "..\..\..\..\..\path\to\licence\YourSoftwareLicence.txt"
+!insertmacro MUI_PAGE_LICENSE "OpenSourceSoftwareAgreement.txt"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page

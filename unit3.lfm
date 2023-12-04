@@ -1,0 +1,21 @@
+object pingtrace: Tpingtrace
+  Left = 619
+  Height = 240
+  Top = 437
+  Width = 320
+  Caption = 'Ping / Trace Route'
+  ClientHeight = 240
+  ClientWidth = 320
+  Position = poDesktopCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '3.0.0.2'
+  object Memo1: TMemo
+    Left = 6
+    Height = 230
+    Top = 2
+    Width = 306
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ReadOnly = True
+    TabOrder = 0
+  end
+end
