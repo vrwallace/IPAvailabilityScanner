@@ -3,7 +3,7 @@ object pingtrace: Tpingtrace
   Height = 240
   Top = 437
   Width = 320
-  Caption = 'Ping / Trace Route'
+  Caption = 'Ping / Traceroute'
   ClientHeight = 240
   ClientWidth = 320
   Position = poDesktopCenter
