@@ -13,10 +13,10 @@ uses
 {$R *.res}
 
 begin
-  Application.Title:='ipavail';
+  Application.Scaled:=True;
+  Application.Title:='IP Availability Scanner';
   RequireDerivedFormResource:=True;
   Application.Initialize;
-  //Application.OnException := @GlobalExceptionHandler;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TFormScanResults, FormScanResults);
   Application.Run;
