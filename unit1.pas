@@ -19,7 +19,7 @@ var
   MaxThreads: integer = 255; // Set your max threads here
   IPList: TStringList;
   ActiveTasks: integer = 0;
-  crlf:string=#10#13;
+  crlf:string=#13#10;
   //ProcessedIPs: integer = 0;
 
 type
