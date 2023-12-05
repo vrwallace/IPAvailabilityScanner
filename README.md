@@ -1,6 +1,8 @@
 # IPAvailabilityScanner
-This tool scans IP addresses and retrieves host names and MAC addresses, offering features to export scan results. It allows for port scanning of specific hosts with trigger functions and banner capture capabilities, operating on a multithreaded framework for enhanced speed.
+This utility efficiently scans IP addresses and gathers host names and MAC addresses. It offers the capability to export scan results and includes features for port scanning of selected hosts. Enhanced with a multithreaded framework, the tool delivers increased speed, supporting functionalities like trigger actions and banner grabbing during port scans.
 
-Additional functionalities are accessible by right-clicking on the displayed grids. These include conducting port scans, copying scan results, pinging, tracerouting and opening ports using default applications like SSH:// and \.
+For more advanced options, right-click on the displayed grids. This context menu includes options for port scanning, copying results, and network diagnostics tools like ping and traceroute. Additionally, it allows for easy access to ports using standard protocols such as SSH.
 
-Moreover, you can also effortlessly look up the manufacturer for a MAC address with just a click of your mouse.
+A convenient feature is the ability to quickly identify the manufacturer of a MAC address with a simple mouse click.
+
+Moreover, the interface is user-friendly, enabling sorting of information by simply clicking on the column headers in the display grid.
