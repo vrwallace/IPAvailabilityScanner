@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "IP Availability Scanner"
-!define PRODUCT_VERSION "1.16"
+!define PRODUCT_VERSION "1.17"
 !define PRODUCT_PUBLISHER "vonwallace.com"
 !define PRODUCT_WEB_SITE "http://vonwallace.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\ipavail.exe"
@@ -53,6 +53,8 @@ Section "MainSection" SEC01
   CreateShortCut "$DESKTOP\IP Availability Scanner.lnk" "$INSTDIR\ipavail.exe"
   File "mac.db"
   File "sqlite3.dll"
+  File "libeay32.dll"
+  FIle "ssleay32.dll"
 SectionEnd
 
 Section -AdditionalIcons
@@ -86,6 +88,9 @@ FunctionEnd
 Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
+  Delete "$INSTDIR\libeay32.dll"
+  Delete "$INSTDIR\ssleay32.dll"
+  
   Delete "$INSTDIR\sqlite3.dll"
   Delete "$INSTDIR\mac.db"
   Delete "$INSTDIR\ipavail.exe"

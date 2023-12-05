@@ -6,7 +6,7 @@ interface
 
 uses
  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
-  clipbrd, ComCtrls, Windows, ShellAPI;
+  clipbrd, ComCtrls, Windows, ShellAPI,opensslsockets;
 
 
 var

@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb, unit3, blcksock, Types;
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb, unit3, blcksock, Types, ssl_openssl;
 
   //Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   //snmpsend, winsock, synautil,strutils,pingsend, blcksock;
@@ -29,6 +29,8 @@ type
     Status: string;
     Banner: string;
   end;
+
+
 
 type
   TPortScanThread = class(TThread)
@@ -187,7 +189,6 @@ implementation
 //end;
 
 
-
 constructor TPortScanThread.Create(const IPAddress: string; Port: integer);
 begin
   inherited Create(True);
@@ -218,12 +219,13 @@ end;
 
 procedure TPortScanThread.DoScan;
 var
-  ClientSocket: longint;
-  SockAddr: TInetSockAddr;
-  TimeVal: TTimeVal;
-  TriggerString, Response: string;
-  BytesSent, BytesReceived: integer;
-  Buffer: array[1..2048] of char;
+  //ClientSocket: longint;
+  //SockAddr: TInetSockAddr;
+  //TimeVal: TTimeVal;
+  TriggerString: string;
+  //BytesSent, BytesReceived: integer;
+  //Buffer: array[1..2048] of char;
+  TcpSock: TTCPBlockSocket;
   // trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
 begin
 
@@ -294,54 +296,78 @@ begin
       TriggerString := '';
   end;
 
-  ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if ClientSocket = -1 then Exit;
-
+   TcpSock := TTCPBlockSocket.Create;
   try
-    // Set the timeout for the socket
-    TimeVal.tv_sec := Form1.SpinEdit1.Value div 1000; // Timeout in seconds
-    TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000;
-    // Remaining milliseconds converted to microseconds
+    TcpSock.ConnectionTimeout := Form1.SpinEdit1.Value;
+    TcpSock.Connect(FScanResult.IPAddress, IntToStr(FScanResult.Port));
 
-    // Set the receive and send timeout for the socket
-    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
-    fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
-
-
-    SockAddr.sin_family := AF_INET;
-    SockAddr.sin_port := htons(FScanResult.Port);
-    SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
-
-    // Attempt to connect with a timeout
-    if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
+    if TcpSock.LastError = 0 then
     begin
       FScanResult.Status := 'Open';
 
-      // Send the trigger
-      BytesSent := fpsend(ClientSocket, @TriggerString[1], Length(TriggerString), 0);
+      // Sending and receiving data
+      TcpSock.SendString(TriggerString);
+      FScanResult.Banner := TcpSock.RecvTerminated(5000, CRLF);
 
-      if BytesSent > 0 then
-      begin
-        // Wait for the response
-        BytesReceived := fprecv(ClientSocket, @Buffer, SizeOf(Buffer), 0);
-        if BytesReceived > 0 then
-        begin
-          SetLength(Response, BytesReceived);
-          Move(Buffer, Response[1], BytesReceived);
-
-          // Save the response as the banner
-          FScanResult.Banner := Response;
-        end;
-      end;
-    end
-    else
+    end else
       FScanResult.Status := 'Closed';
 
   finally
-    fpshutdown(ClientSocket, SHUT_RDWR);
-    CloseSocket(ClientSocket);
+    TcpSock.Free;
   end;
 end;
+
+
+
+
+  //ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  //if ClientSocket = -1 then Exit;
+  //
+  //try
+  //  // Set the timeout for the socket
+  //  TimeVal.tv_sec := Form1.SpinEdit1.Value div 1000; // Timeout in seconds
+  //  TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000;
+  //  // Remaining milliseconds converted to microseconds
+  //
+  //  // Set the receive and send timeout for the socket
+  //  fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
+  //  fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
+  //
+  //
+  //  SockAddr.sin_family := AF_INET;
+  //  SockAddr.sin_port := htons(FScanResult.Port);
+  //  SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
+  //
+  //  // Attempt to connect with a timeout
+  //  if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
+  //  begin
+  //    FScanResult.Status := 'Open';
+  //
+  //    // Send the trigger
+  //    BytesSent := fpsend(ClientSocket, @TriggerString[1], Length(TriggerString), 0);
+  //
+  //    if BytesSent > 0 then
+  //    begin
+  //      // Wait for the response
+  //      BytesReceived := fprecv(ClientSocket, @Buffer, SizeOf(Buffer), 0);
+  //      if BytesReceived > 0 then
+  //      begin
+  //        SetLength(Response, BytesReceived);
+  //        Move(Buffer, Response[1], BytesReceived);
+  //
+  //        // Save the response as the banner
+  //        FScanResult.Banner := Response;
+  //      end;
+  //    end;
+  //  end
+  //  else
+  //    FScanResult.Status := 'Closed';
+  //
+  //finally
+  //  fpshutdown(ClientSocket, SHUT_RDWR);
+  //  CloseSocket(ClientSocket);
+  //end;
+//end;
 
 
 procedure TPortScanThread.UpdateGridWrapper;
@@ -1718,6 +1744,7 @@ begin
     Ping.Free;
   end;
 end;
-
+ initialization
+  SSLImplementation := TSSLOpenSSL;  // Initialize OpenSSL for SSL support
 
 end.
