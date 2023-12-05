@@ -116,7 +116,7 @@ begin
         5432: URL := 'postgresql://' + IPAddress + ':' + IntToStr(Port); // PostgreSQL
         5900: URL := 'vnc://' + IPAddress + ':' + IntToStr(Port); // VNC
         5060: URL := 'sip://' + IPAddress + ':' + IntToStr(Port); // SIP
-        25: URL := 'mailto:' + IPAddress;
+        25: URL := 'telnet://' + IPAddress+ ':' + IntToStr(Port);
         // SMTP, typically doesn't use URL but can be used for mailto
         119: URL := 'news://' + IPAddress + ':' + IntToStr(Port); // NNTP
         2049: URL := 'nfs://' + IPAddress + ':' + IntToStr(Port); // NFS

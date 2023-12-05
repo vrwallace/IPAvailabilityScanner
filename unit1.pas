@@ -746,6 +746,7 @@ begin
      Arrow := ' ↓'; // Arrow pointing downwards for descending order
 
     Grid.Canvas.TextOut(aRect.Left + 2, aRect.Top + 2, Grid.Cells[aCol, aRow] + Arrow);
+    //stringgrid1.AutoSizeColumns;
   end
   else if aRow = 0 then
   begin
