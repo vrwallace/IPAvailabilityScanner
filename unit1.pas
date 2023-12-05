@@ -7,9 +7,9 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,unit3,blcksock;
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb, unit3, blcksock, Types;
 
-//Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  //Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   //snmpsend, winsock, synautil,strutils,pingsend, blcksock;
 
 var
@@ -19,7 +19,7 @@ var
   MaxThreads: integer = 255; // Set your max threads here
   IPList: TStringList;
   ActiveTasks: integer = 0;
-  crlf:string=#13#10;
+  crlf: string = #13#10;
   //ProcessedIPs: integer = 0;
 
 type
@@ -29,14 +29,15 @@ type
     Status: string;
     Banner: string;
   end;
-  type
+
+type
   TPortScanThread = class(TThread)
   private
     FScanResult: TScanResult;
     procedure UpdateGrid;
     procedure UpdateGridWrapper;
     procedure DoScan;
-     function HexToString(H: string): string;
+    function HexToString(H: string): string;
   protected
     procedure Execute; override;
   public
@@ -44,13 +45,14 @@ type
   end;
 
 
-  type
+type
   // Assuming TPingTask is a simple record for demonstration
   TPingTask = record
     IPAddress: string;
     Data: string;
   end;
-  type
+
+type
   // TPingTaskQueue class definition
   TPingTaskQueue = class
   private
@@ -68,7 +70,8 @@ type
 
     function TryGetTask(out Task: TPingTask): boolean;
   end;
-  type
+
+type
   TPingThread = class(TThread)
   private
     FTask: TPingTask;
@@ -89,7 +92,7 @@ type
 
 
   { TForm1 }
-  type
+type
   TForm1 = class(TForm)
     Button1: TButton;
     Button2: TButton;
@@ -111,6 +114,10 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure SortStringGrid;
     procedure MoveRow(Grid: TStringGrid; FromIndex, ToIndex: integer);
+    procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: integer;
+      aRect: TRect; aState: TGridDrawState);
+    procedure StringGrid1HeaderClick(Sender: TObject; IsColumn: boolean;
+      Index: integer);
     procedure TrimAppMemorySize;
     function CalculateNumberOfIPsInRange: integer;
     function GetLocalIPAddress: string;
@@ -123,23 +130,28 @@ type
     procedure SortStringGrid2(Grid: TStringGrid; ColIndex: integer);
     function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
       const ColIndex: integer): integer;
-      procedure FormWindowStateChange(Sender: TObject);
-      procedure LookupMACMenuItemClick(Sender: TObject);
-      //function LookupMAC(macPrefix: String; out ShortName, LongName: String): Boolean;
-     function LookupMAC(macPrefix: String; out ShortName, LongName: String; dbname: String): Boolean;
-     procedure tracertMenuItemClick(Sender: TObject);
-     procedure PingMenuItemClick(Sender: TObject);
-     procedure buttonpingClick(Sender: TObject);
-     procedure buttontracertClick(Sender: TObject);
-     function PingHostfun2(const Host: string): string;
-     function TraceRouteHostfun(const Host: string): string;
-     function Pingtracertrttl(const Host: string): string;
+    procedure FormWindowStateChange(Sender: TObject);
+    procedure LookupMACMenuItemClick(Sender: TObject);
+    //function LookupMAC(macPrefix: String; out ShortName, LongName: String): Boolean;
+    function LookupMAC(macPrefix: string; out ShortName, LongName: string;
+      dbname: string): boolean;
+    procedure tracertMenuItemClick(Sender: TObject);
+    procedure PingMenuItemClick(Sender: TObject);
+    procedure buttonpingClick(Sender: TObject);
+    procedure buttontracertClick(Sender: TObject);
+    function PingHostfun2(const Host: string): string;
+    function TraceRouteHostfun(const Host: string): string;
+    function Pingtracertrttl(const Host: string): string;
+    function SplitString(const aString, Delimiter: string): TStringList;
+    function CompareIPs2(IP1, IP2: string): integer;
+    //procedure FormCreate(Sender: TObject);
   private
     CompletedScans: integer;
-
+    SortAscending: array of boolean;
+    // Array to keep track of sort order for each column
     TotalScans: integer;
     ActiveScanThreads: integer;
-
+     LastSortedColumn: Integer;
 
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
@@ -204,22 +216,18 @@ begin
   end;
 end;
 
-    procedure TPortScanThread.DoScan;
+procedure TPortScanThread.DoScan;
 var
   ClientSocket: longint;
   SockAddr: TInetSockAddr;
   TimeVal: TTimeVal;
   TriggerString, Response: string;
-  BytesSent, BytesReceived: Integer;
-  Buffer: array[1..2048] of Char;
- // trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
-
-
-
+  BytesSent, BytesReceived: integer;
+  Buffer: array[1..2048] of char;
+  // trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
 begin
 
-
- // trig_null := '';
+  // trig_null := '';
   //trig_http := 'GET / HTTP/1.0'#13#10#13#10;
   //trig_mssql := HexToString('100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300');
   //trig_ldap := HexToString('300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
@@ -239,14 +247,16 @@ begin
 
   // Initialize TriggerString based on the port
   case FScanResult.Port of
-    80, 443, 2082,2083,2086,2087,2095,2096,8080, 8081, 8000,8443, 8888,10000:
+    80, 443, 2082, 2083, 2086, 2087, 2095, 2096, 8080, 8081, 8000, 8443, 8888, 10000:
       TriggerString := 'GET / HTTP/1.0'#13#10#13#10;  // HTTP and common alternate ports
     21, 20:
-      TriggerString := 'HELP'#10'USER anonymous'#10'PASS banner@grab.com'#10'QUIT'#10; // FTP
+      TriggerString := 'HELP'#10'USER anonymous'#10'PASS banner@grab.com'#10'QUIT'#10;
+    // FTP
     22:
       TriggerString := ''; // SSH, typically doesn't have a banner
     25, 465, 587:
-      TriggerString := 'HELO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10; // SMTP and related email ports
+      TriggerString := 'HELO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10;
+    // SMTP and related email ports
     23:
       TriggerString := #13#10; // Telnet
     110, 995:
@@ -256,24 +266,30 @@ begin
     119:
       TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10; // NNTP
     161:
-      TriggerString := HexToString('302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
+      TriggerString := HexToString(
+        '302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
     389, 636:
-      TriggerString := HexToString('300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473'); // LDAP
+      TriggerString := HexToString(
+        '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
+    // LDAP
     1433:
-      TriggerString := HexToString('100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300'); // Microsoft SQL Server
+      TriggerString := HexToString(
+        '100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300'); // Microsoft SQL Server
     3306:
       TriggerString := ''; // MySQL, typically doesn't use a banner
     5432:
       TriggerString := ''; // PostgreSQL, typically doesn't use a banner
     7, 9:
-      TriggerString :=  'Echo'#13#10;// Echo
+      TriggerString := 'Echo'#13#10;// Echo
     137:
-      TriggerString := HexToString('a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001'); // NetBIOS Name Service
+      TriggerString := HexToString(
+        'a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
+    // NetBIOS Name Service
     123:
       TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10;  // NTP
     79:
       TriggerString := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10; // Finger
-    // Add more ports and triggers as needed
+      // Add more ports and triggers as needed
     else
       TriggerString := '';
   end;
@@ -282,9 +298,10 @@ begin
   if ClientSocket = -1 then Exit;
 
   try
-     // Set the timeout for the socket
+    // Set the timeout for the socket
     TimeVal.tv_sec := Form1.SpinEdit1.Value div 1000; // Timeout in seconds
-    TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000; // Remaining milliseconds converted to microseconds
+    TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000;
+    // Remaining milliseconds converted to microseconds
 
     // Set the receive and send timeout for the socket
     fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
@@ -523,7 +540,6 @@ begin
       Cells[3, 0] := 'Description';
       Cells[4, 0] := 'Banner';
 
-
     end;
     FormScanResults.StringGridResults.AutoSizeColumns;
 
@@ -672,12 +688,12 @@ begin
       Break;  // Exit the loop if there are no more tasks
     end;
   end;
-   if (ActiveTasks = 0) then
-   begin
+  if (ActiveTasks = 0) then
+  begin
 
     Synchronize(@Form1.FinalizeTasks);
 
-end;
+  end;
 end;
 
 
@@ -711,6 +727,159 @@ begin
     Grid.Cells[i, ToIndex] := Temp;
   end;
 end;
+
+
+procedure TForm1.StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer; aRect: TRect; aState: TGridDrawState);
+var
+  Grid: TStringGrid;
+  Arrow: string;
+begin
+  Grid := Sender as TStringGrid;
+
+  if (aRow = 0) and (aCol = LastSortedColumn) then
+  begin
+    Grid.Canvas.FillRect(aRect); // Fill the cell background
+
+    if SortAscending[aCol] then
+    Arrow := ' ↑' // Arrow pointing upwards for ascending order
+    else
+     Arrow := ' ↓'; // Arrow pointing downwards for descending order
+
+    Grid.Canvas.TextOut(aRect.Left + 2, aRect.Top + 2, Grid.Cells[aCol, aRow] + Arrow);
+  end
+  else if aRow = 0 then
+  begin
+    // For other header cells without sorting arrow
+    Grid.Canvas.FillRect(aRect);
+    Grid.Canvas.TextOut(aRect.Left + 2, aRect.Top + 2, Grid.Cells[aCol, aRow]);
+  end
+  else
+  begin
+    // For non-header cells
+    Grid.Canvas.FillRect(aRect);
+    Grid.Canvas.TextOut(aRect.Left + 2, aRect.Top + 2, Grid.Cells[aCol, aRow]);
+  end;
+end;
+
+
+function tform1.SplitString(const aString, Delimiter: string): TStringList;
+var
+  s: string;
+  p: integer;
+begin
+  Result := TStringList.Create;
+  s := aString;
+
+  while Length(s) > 0 do
+  begin
+    p := Pos(Delimiter, s);
+    if p > 0 then
+    begin
+      Result.Add(Copy(s, 1, p - 1));
+      s := Copy(s, p + Length(Delimiter), Length(s));
+    end
+    else
+    begin
+      Result.Add(s);
+      Break;
+    end;
+  end;
+end;
+
+function tform1.CompareIPs2(IP1, IP2: string): integer;
+var
+  Parts1, Parts2: TStringList;
+  i, Num1, Num2: integer;
+begin
+  Result := 0;
+  Parts1 := SplitString(IP1, '.');
+  Parts2 := SplitString(IP2, '.');
+
+  try
+    for i := 0 to 3 do
+    begin
+      if Parts1.Count > i then
+        Num1 := StrToInt(Parts1[i])
+      else
+        Num1 := 0;
+
+      if Parts2.Count > i then
+        Num2 := StrToInt(Parts2[i])
+      else
+        Num2 := 0;
+
+      if Num1 < Num2 then
+      begin
+        Result := -1;
+        Break;
+      end
+      else if Num1 > Num2 then
+      begin
+        Result := 1;
+        Break;
+      end;
+    end;
+  finally
+    Parts1.Free;
+    Parts2.Free;
+  end;
+end;
+
+procedure TForm1.StringGrid1HeaderClick(Sender: TObject; IsColumn: boolean;
+  Index: integer);
+var
+  i, j: integer;
+  Temp: string;
+  Sorted: boolean;
+  CompareResult: integer;
+begin
+  if IsColumn then
+  begin
+    repeat
+      Sorted := True;
+      for i := 1 to StringGrid1.RowCount - 2 do
+      begin
+        // Compare the cells in the clicked column
+        if Index = 0 then
+        begin
+          if SortAscending[Index] then
+            CompareResult := CompareIPs(StringGrid1.Cells[Index, i],
+              StringGrid1.Cells[Index, i + 1])
+          else
+            CompareResult := CompareIPs(StringGrid1.Cells[Index, i + 1],
+              StringGrid1.Cells[Index, i]);
+        end
+        else if SortAscending[Index] then
+          // Standard text comparison for other columns
+          CompareResult := AnsiCompareText(StringGrid1.Cells[Index, i],
+            StringGrid1.Cells[Index, i + 1])
+        else
+          CompareResult := AnsiCompareText(StringGrid1.Cells[Index, i + 1],
+            StringGrid1.Cells[Index, i]);
+
+        // Swap rows if the comparison result indicates they are out of order
+        if CompareResult > 0 then
+        begin
+          for j := 0 to StringGrid1.ColCount - 1 do
+          begin
+            Temp := StringGrid1.Cells[j, i];
+            StringGrid1.Cells[j, i] := StringGrid1.Cells[j, i + 1];
+            StringGrid1.Cells[j, i + 1] := Temp;
+          end;
+          Sorted := False;
+        end;
+      end;
+    until Sorted;
+
+    // Toggle the sort order for the next click
+    SortAscending[Index] := not SortAscending[Index];
+     LastSortedColumn := Index;
+    StringGrid1.Invalidate;
+  end;
+end;
+
+
+
 
 procedure TPingThread.UpdateUI;
 var
@@ -966,21 +1135,21 @@ end;
 procedure TForm1.FinalizeTasks;
 begin
 
-
-    ThreadLock.Acquire;
-    try
+  ThreadLock.Acquire;
+  try
     SortStringGrid;
     edit3.Text := 'Auto Sizing Comumns';
     StringGrid1.AutoSizeColumns;
     //edit3.Text := 'Trim App Memory Size';
 
     Edit3.Text := 'Complete!';
-    finally
-      ThreadLock.Release;
-    end;
-    trimappmemorysize;
+  finally
+    ThreadLock.Release;
+  end;
+  trimappmemorysize;
 
 end;
+
 procedure TForm1.tracertMenuItemClick(Sender: TObject);
 begin
   ButtonTracertClick(Sender);
@@ -1001,8 +1170,9 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
-  LookupMACMenuItem,PingMenuItem,tracertmenuitem: TMenuItem;
+  LookupMACMenuItem, PingMenuItem, tracertmenuitem: TMenuItem;
 begin
+    LastSortedColumn := -1;
   stoppressed := 0;
   // Initialize the critical section for thread synchronization
   ThreadLock := TCriticalSection.Create;
@@ -1012,6 +1182,9 @@ begin
 
   // Initialize the list for storing IP addresses
   IPList := TStringList.Create;
+
+
+
 
   // Create the popup menu
   StringGrid1.PopupMenu := TPopupMenu.Create(StringGrid1);
@@ -1036,7 +1209,7 @@ begin
   PortScanMenuItem.OnClick := @PortScanMenuItemClick;
   StringGrid1.PopupMenu.Items.Add(PortScanMenuItem);
 
-   // Initialize the popup menu and its item
+  // Initialize the popup menu and its item
 
   LookupMACMenuItem := TMenuItem.Create(StringGrid1.PopupMenu);
   LookupMACMenuItem.Caption := 'Look up Manufacturer (Single)';
@@ -1064,47 +1237,57 @@ begin
   end;
   stringgrid1.AutoSizeColumns;
 
+  SetLength(SortAscending, StringGrid1.ColCount);
+  // Initialize all columns to sort ascending initially
+  FillChar(SortAscending[0], Length(SortAscending) * SizeOf(boolean), False);
+
   // Other initializations...
 end;
 
- procedure TForm1.LookupMACMenuItemClick(Sender: TObject);
+procedure TForm1.LookupMACMenuItemClick(Sender: TObject);
 var
-  MACAddress: String;
-  ShortName, LongName: String;
-  MACPrefix,dbname,dllname: String;
+  MACAddress: string;
+  ShortName, LongName: string;
+  MACPrefix, dbname, dllname: string;
 begin
   if StringGrid1.Row >= 0 then
   begin
-    MACAddress := StringGrid1.Cells[3, StringGrid1.Row]; // Assuming MAC is in the 5th column
+    MACAddress := StringGrid1.Cells[3, StringGrid1.Row];
+    // Assuming MAC is in the 5th column
     // Replace hyphens with colons and extract the MAC prefix (first 8 characters)
 
     if Pos('-', macAddress) = 3 then
     begin
 
-    MACPrefix := StringReplace(Copy(MACAddress, 1, 8), '-', ':', [rfReplaceAll]);
-    dbname:='mac.db';
-    dllname:='sqlite3.dll';
-    if FileExists(dbname) then
-    begin
-    if FileExists(dllname) then
-    begin
-    // Call your function to look up the MAC manufacturer using the prefix
-    LookupMAC(MACPrefix, ShortName, LongName, dbname);
+      MACPrefix := StringReplace(Copy(MACAddress, 1, 8), '-', ':', [rfReplaceAll]);
+      dbname := 'mac.db';
+      dllname := 'sqlite3.dll';
+      if FileExists(dbname) then
+      begin
+        if FileExists(dllname) then
+        begin
+          // Call your function to look up the MAC manufacturer using the prefix
+          LookupMAC(MACPrefix, ShortName, LongName, dbname);
 
-    // Show the results
-    ShowMessage('MAC Prefix: ' + MACPrefix + sLineBreak + 'Short Name: ' + ShortName + sLineBreak + 'Long Name: ' + LongName);
-    end
-    else showmessage(dllname+' Not found did you place it in the same directory as the exe?');
+          // Show the results
+          ShowMessage('MAC Prefix: ' + MACPrefix + sLineBreak + 'Short Name: ' +
+            ShortName + sLineBreak + 'Long Name: ' + LongName);
+        end
+        else
+          ShowMessage(dllname + ' Not found did you place it in the same directory as the exe?');
+
+      end
+      else
+        ShowMessage(dbname + ' Not found did you place it in the same directory as the exe?');
 
     end
-    else showmessage(dbname+' Not found did you place it in the same directory as the exe?');
-
-    end
-    else showmessage(macprefix+ ' Not a valid MAC address!');
+    else
+      ShowMessage(macprefix + ' Not a valid MAC address!');
+  end;
 end;
-end;
 
-  function tform1.LookupMAC(macPrefix: String; out ShortName, LongName: String; dbname: String): Boolean;
+function tform1.LookupMAC(macPrefix: string; out ShortName, LongName: string;
+  dbname: string): boolean;
 var
   dbConnection: TSQLite3Connection;
   sqlTransaction: TSQLTransaction;
@@ -1128,7 +1311,8 @@ begin
     sqlTransaction.StartTransaction;
 
     // Prepare and execute SQL command
-    sqlCommand.SQL.Text := 'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix';
+    sqlCommand.SQL.Text :=
+      'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix';
     sqlCommand.ParamByName('prefix').AsString := macPrefix;
     sqlCommand.Open;
 
@@ -1168,44 +1352,43 @@ begin
   end;
   Clipboard.AsText := S; // Copy to clipboard
 end;
+
 procedure TForm1.buttonpingClick(Sender: TObject);
-
-
-  var
-        ip:string;
-        begin
+var
+  ip: string;
+begin
   if StringGrid1.Row >= 0 then
   begin
     IP := StringGrid1.Cells[0, StringGrid1.Row];
-    if (pos('.',ip)>0) then
+    if (pos('.', ip) > 0) then
     begin
-    pingtrace.WindowState:=wsNormal;
-    pingtrace.show;
- pingtrace.memo1.clear;
-  pingtrace.memo1.Lines.add('Pinging...');
-  application.ProcessMessages;
-  pingtrace.memo1.Lines.add(pinghostfun2(ip));
+      pingtrace.WindowState := wsNormal;
+      pingtrace.Show;
+      pingtrace.memo1.Clear;
+      pingtrace.memo1.Lines.add('Pinging...');
+      application.ProcessMessages;
+      pingtrace.memo1.Lines.add(pinghostfun2(ip));
     end;
-    end;
+  end;
 end;
-procedure TForm1.buttontracertClick(Sender: TObject);
 
-      var
-        ip:string;
-        begin
+procedure TForm1.buttontracertClick(Sender: TObject);
+var
+  ip: string;
+begin
   if StringGrid1.Row >= 0 then
 
     IP := StringGrid1.Cells[0, StringGrid1.Row];
-    if (pos('.',ip)>0) then
-    begin
-      pingtrace.WindowState:=wsNormal;
-      pingtrace.show;
-  pingtrace.memo1.clear;
-  pingtrace.memo1.Lines.add('Tracerouting...');
-  application.ProcessMessages;
-  pingtrace.memo1.Lines.add(traceroutehostfun(ip));
-    end;
-    end;
+  if (pos('.', ip) > 0) then
+  begin
+    pingtrace.WindowState := wsNormal;
+    pingtrace.Show;
+    pingtrace.memo1.Clear;
+    pingtrace.memo1.Lines.add('Tracerouting...');
+    application.ProcessMessages;
+    pingtrace.memo1.Lines.add(traceroutehostfun(ip));
+  end;
+end;
 
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -1371,9 +1554,10 @@ begin
   // It's not typically needed in a memory trimming routine
   // Application.ProcessMessages;
 end;
-      function TPortScanThread.HexToString(H: string): string;
+
+function TPortScanThread.HexToString(H: string): string;
 var
-  I: Integer;
+  I: integer;
   B: byte;
 begin
   Result := '';
@@ -1384,7 +1568,8 @@ begin
     Result := Result + Chr(B);
   end;
 end;
-  function tform1.PingHostfun2(const Host: string): string;
+
+function tform1.PingHostfun2(const Host: string): string;
 var
   low, high, timetotal, j, success: integer;
   ipaddrval: string;
@@ -1401,85 +1586,84 @@ begin
 
   with TPINGSend.Create do
 
-    try
-      success := 0;
-      timetotal := 0;
-      low := 99999;
-      high := 0;
-      Result := 'Pinging ' + ipaddrval + ' with ' + IntToStr(PacketSize) +
-        ' bytes of data:' + #13#10;
-      for j := 1 to 4 do
+  try
+    success := 0;
+    timetotal := 0;
+    low := 99999;
+    high := 0;
+    Result := 'Pinging ' + ipaddrval + ' with ' + IntToStr(PacketSize) +
+      ' bytes of data:' + #13#10;
+    for j := 1 to 4 do
+    begin
+      if Ping(ipaddrval) then
       begin
-        if Ping(ipaddrval) then
+        if ReplyError = IE_NoError then
         begin
-          if ReplyError = IE_NoError then
-          begin
-            Result := Result + 'Reply from ' + ReplyFrom + ': bytes=' +
-              IntToStr(PacketSize) + ' time=' + IntToStr(PingTime) +
-              ' TTL=' + IntToStr(Ord(TTL)) + #13#10;
-            timetotal := timetotal + pingtime;
-            success := success + 1;
-            if pingtime < low then
-              low := pingtime;
-            if pingtime > high then
-              high := pingtime;
-          end
-
-          else
-            Result := Result + 'Reply from ' + ReplyFrom + ': ' +
-              ReplyErrorDesc + #13#10;
+          Result := Result + 'Reply from ' + ReplyFrom + ': bytes=' +
+            IntToStr(PacketSize) + ' time=' + IntToStr(PingTime) +
+            ' TTL=' + IntToStr(Ord(TTL)) + #13#10;
+          timetotal := timetotal + pingtime;
+          success := success + 1;
+          if pingtime < low then
+            low := pingtime;
+          if pingtime > high then
+            high := pingtime;
         end
+
         else
-        begin
-          Result := Result + 'Ping Failed!' + #13#10;
-          low := 0;
-          break;
-        end;
+          Result := Result + 'Reply from ' + ReplyFrom + ': ' +
+            ReplyErrorDesc + #13#10;
+      end
+      else
+      begin
+        Result := Result + 'Ping Failed!' + #13#10;
+        low := 0;
+        break;
       end;
-
-      Result := Result + #13#10 + 'Ping statistics for ' + ipaddrval + ':'#13#10;
-      Result := Result + 'Packets: Sent = ' + IntToStr(j) + ', Received = ' +
-        IntToStr(success) + ', Lost = ' + IntToStr(j - success) +
-        ' (' + IntToStr(trunc((100 - ((success / j) * 100)))) + '% loss)' + #13#10;
-      Result := Result + 'Approximate round trip times in milli-seconds: ' +
-        IntToStr(timetotal) + 'ms' + #13#10;
-      Result := Result + 'Minimum = ' + IntToStr(low) + 'ms, Maximum = ' +
-        IntToStr(high) + 'ms, Average = ' + IntToStr(trunc(timetotal / j)) +
-        'ms' + #13#10;
-
-    finally
-      Free;
     end;
+
+    Result := Result + #13#10 + 'Ping statistics for ' + ipaddrval + ':'#13#10;
+    Result := Result + 'Packets: Sent = ' + IntToStr(j) + ', Received = ' +
+      IntToStr(success) + ', Lost = ' + IntToStr(j - success) +
+      ' (' + IntToStr(trunc((100 - ((success / j) * 100)))) + '% loss)' + #13#10;
+    Result := Result + 'Approximate round trip times in milli-seconds: ' +
+      IntToStr(timetotal) + 'ms' + #13#10;
+    Result := Result + 'Minimum = ' + IntToStr(low) + 'ms, Maximum = ' +
+      IntToStr(high) + 'ms, Average = ' + IntToStr(trunc(timetotal / j)) +
+      'ms' + #13#10;
+
+  finally
+    Free;
+  end;
 end;
 
 function tform1.Pingtracertrttl(const Host: string): string;
 var
   j: integer;
-
 begin
 
   Result := '';
   with TPINGSend.Create do
-    try
-      for j := 1 to 2 do
+  try
+    for j := 1 to 2 do
+    begin
+      if Ping(Host) then
       begin
-        if Ping(Host) then
+        if ReplyError = IE_NoError then
         begin
-          if ReplyError = IE_NoError then
-          begin
-            Result := Result + IntToStr(PingTime) + ' ms    ';
-          end
-
-          else
-            Result := Result + '*     ';
+          Result := Result + IntToStr(PingTime) + ' ms    ';
         end
+
         else
           Result := Result + '*     ';
-      end;
-
-    finally
-      Free;
+      end
+      else
+        Result := Result + '*     ';
     end;
+
+  finally
+    Free;
+  end;
 end;
 
 function tform1.TraceRouteHostfun(const Host: string): string;
