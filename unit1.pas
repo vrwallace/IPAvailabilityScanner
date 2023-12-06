@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
   SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,
-  unit3, blcksock, Types,openssl;
+  unit3, blcksock, Types,ssl_openssl3;
 
 
 var
@@ -1663,7 +1663,7 @@ begin
   end;
 end;
 
-//initialization
-  //SSLImplementation := TSSLOpenSSL;  // Initialize OpenSSL for SSL support
+initialization
+SSLImplementation := TSSLOpenSSL3;  // Initialize OpenSSL for SSL support
 
 end.
