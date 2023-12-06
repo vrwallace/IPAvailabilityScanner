@@ -1,7 +1,7 @@
 object FormScanResults: TFormScanResults
   Left = 1102
   Height = 325
-  Top = 162
+  Top = 163
   Width = 317
   Caption = 'Port Scan Results'
   ClientHeight = 325

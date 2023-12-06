@@ -1,15 +1,14 @@
 object Form1: TForm1
   Left = 687
   Height = 383
-  Top = 221
+  Top = 222
   Width = 360
-  Caption = 'IP Availability Scanner v1.17mq'
+  Caption = 'IP Availability Scanner v1.18mq'
   ClientHeight = 383
   ClientWidth = 360
   Color = clWhite
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
   LCLVersion = '3.0.0.2'
   object Edit1: TEdit

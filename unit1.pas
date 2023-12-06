@@ -7,10 +7,8 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb, unit3, blcksock, Types, ssl_openssl;
-
-  //Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  //snmpsend, winsock, synautil,strutils,pingsend, blcksock;
+  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,
+  unit3, blcksock, Types, ssl_openssl;
 
 var
 
@@ -20,7 +18,6 @@ var
   IPList: TStringList;
   ActiveTasks: integer = 0;
   crlf: string = #13#10;
-  //ProcessedIPs: integer = 0;
 
 type
   TScanResult = record
@@ -132,9 +129,8 @@ type
     procedure SortStringGrid2(Grid: TStringGrid; ColIndex: integer);
     function CompareRows(const Row1, Row2: integer; Grid: TStringGrid;
       const ColIndex: integer): integer;
-    procedure FormWindowStateChange(Sender: TObject);
+
     procedure LookupMACMenuItemClick(Sender: TObject);
-    //function LookupMAC(macPrefix: String; out ShortName, LongName: String): Boolean;
     function LookupMAC(macPrefix: string; out ShortName, LongName: string;
       dbname: string): boolean;
     procedure tracertMenuItemClick(Sender: TObject);
@@ -146,14 +142,13 @@ type
     function Pingtracertrttl(const Host: string): string;
     function SplitString(const aString, Delimiter: string): TStringList;
     function CompareIPs2(IP1, IP2: string): integer;
-    //procedure FormCreate(Sender: TObject);
   private
     CompletedScans: integer;
     SortAscending: array of boolean;
     // Array to keep track of sort order for each column
     TotalScans: integer;
     ActiveScanThreads: integer;
-     LastSortedColumn: Integer;
+    LastSortedColumn: integer;
 
     TaskQueue: TPingTaskQueue;
     ThreadPool: array of TPingThread;
@@ -219,35 +214,11 @@ end;
 
 procedure TPortScanThread.DoScan;
 var
-  //ClientSocket: longint;
-  //SockAddr: TInetSockAddr;
-  //TimeVal: TTimeVal;
   TriggerString: string;
-  //BytesSent, BytesReceived: integer;
-  //Buffer: array[1..2048] of char;
   TcpSock: TTCPBlockSocket;
-  // trig_null, trig_http, trig_mssql, trig_ldap, trig_smtp, trig_fw1admin, trig_nbns, trig_ntp, trig_nntp, trig_pop, trig_finger, trig_snmp, trig_telnet, trig_ftp, trig_echo, trig_imap: string;
 begin
 
-  // trig_null := '';
-  //trig_http := 'GET / HTTP/1.0'#13#10#13#10;
-  //trig_mssql := HexToString('100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300');
-  //trig_ldap := HexToString('300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
-  //trig_smtp := 'HELO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10;
-  //trig_fw1admin := '???`r`n?`r`n';
-  //trig_nbns := HexToString('a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
-  //trig_ntp := HexToString('e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');
-  //trig_nntp := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10;
-  //trig_pop := 'QUIT'#13#10;
-  //trig_finger := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10;
-  //trig_snmp := HexToString('302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500');
-  //trig_telnet := #13#10;
-  //trig_ftp := 'HELP'#10'USER anonymous'#10'PASS banner@grab.com'#10'QUIT'#10;
-  //trig_echo := 'Echo'#13#10;
-  //trig_imap := 'CAPABILITY'#13#10;
-  // Rest of your code
-
-  // Initialize TriggerString based on the port
+   // Initialize TriggerString based on the port
   case FScanResult.Port of
     80, 443, 2082, 2083, 2086, 2087, 2095, 2096, 8080, 8081, 8000, 8443, 8888, 10000:
       TriggerString := 'GET / HTTP/1.0'#13#10#13#10;  // HTTP and common alternate ports
@@ -265,14 +236,14 @@ begin
       TriggerString := 'QUIT'#13#10;   // POP3
     143, 993:
       TriggerString := 'CAPABILITY'#13#10; // IMAP
-    119:
+    119,563:
       TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10; // NNTP
     161:
       TriggerString := HexToString(
         '302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
     389, 636:
       TriggerString := HexToString(
-        '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
+        '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');   //ldap
     // LDAP
     1433:
       TriggerString := HexToString(
@@ -288,7 +259,7 @@ begin
         'a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
     // NetBIOS Name Service
     123:
-      TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10;  // NTP
+      TriggerString := HexToString('e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');  // NTP
     79:
       TriggerString := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10; // Finger
       // Add more ports and triggers as needed
@@ -296,7 +267,7 @@ begin
       TriggerString := '';
   end;
 
-   TcpSock := TTCPBlockSocket.Create;
+  TcpSock := TTCPBlockSocket.Create;
   try
     TcpSock.ConnectionTimeout := Form1.SpinEdit1.Value;
     TcpSock.Connect(FScanResult.IPAddress, IntToStr(FScanResult.Port));
@@ -309,7 +280,8 @@ begin
       TcpSock.SendString(TriggerString);
       FScanResult.Banner := TcpSock.RecvTerminated(5000, CRLF);
 
-    end else
+    end
+    else
       FScanResult.Status := 'Closed';
 
   finally
@@ -318,56 +290,6 @@ begin
 end;
 
 
-
-
-  //ClientSocket := fpSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  //if ClientSocket = -1 then Exit;
-  //
-  //try
-  //  // Set the timeout for the socket
-  //  TimeVal.tv_sec := Form1.SpinEdit1.Value div 1000; // Timeout in seconds
-  //  TimeVal.tv_usec := (Form1.SpinEdit1.Value mod 1000) * 1000;
-  //  // Remaining milliseconds converted to microseconds
-  //
-  //  // Set the receive and send timeout for the socket
-  //  fpsetsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
-  //  fpsetsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, @TimeVal, SizeOf(TimeVal));
-  //
-  //
-  //  SockAddr.sin_family := AF_INET;
-  //  SockAddr.sin_port := htons(FScanResult.Port);
-  //  SockAddr.sin_addr.s_addr := StrToNetAddr(FScanResult.IPAddress).s_addr;
-  //
-  //  // Attempt to connect with a timeout
-  //  if fpConnect(ClientSocket, @SockAddr, SizeOf(SockAddr)) = 0 then
-  //  begin
-  //    FScanResult.Status := 'Open';
-  //
-  //    // Send the trigger
-  //    BytesSent := fpsend(ClientSocket, @TriggerString[1], Length(TriggerString), 0);
-  //
-  //    if BytesSent > 0 then
-  //    begin
-  //      // Wait for the response
-  //      BytesReceived := fprecv(ClientSocket, @Buffer, SizeOf(Buffer), 0);
-  //      if BytesReceived > 0 then
-  //      begin
-  //        SetLength(Response, BytesReceived);
-  //        Move(Buffer, Response[1], BytesReceived);
-  //
-  //        // Save the response as the banner
-  //        FScanResult.Banner := Response;
-  //      end;
-  //    end;
-  //  end
-  //  else
-  //    FScanResult.Status := 'Closed';
-  //
-  //finally
-  //  fpshutdown(ClientSocket, SHUT_RDWR);
-  //  CloseSocket(ClientSocket);
-  //end;
-//end;
 
 
 procedure TPortScanThread.UpdateGridWrapper;
@@ -520,15 +442,6 @@ begin
   end;
 end;
 
-procedure TForm1.FormWindowStateChange(Sender: TObject);
-begin
-  //if Self.WindowState = wsMinimized then
-  //begin
-  //  Self.WindowState := wsNormal;
-  //  Self.Hide;
-  //  Self.ShowInTaskBar :=stAlways;
-  //end;
-end;
 
 
 procedure TForm1.ButtonScanPortsClick(Sender: TObject);
@@ -639,6 +552,9 @@ function TPingTaskQueue.GetCount: integer;
 begin
   Result := FTaskList.Count;
 end;
+
+
+
 
 function TPingTaskQueue.TryGetTask(out Task: TPingTask): boolean;
 var
@@ -755,7 +671,8 @@ begin
 end;
 
 
-procedure TForm1.StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer; aRect: TRect; aState: TGridDrawState);
+procedure TForm1.StringGrid1DrawCell(Sender: TObject; aCol, aRow: integer;
+  aRect: TRect; aState: TGridDrawState);
 var
   Grid: TStringGrid;
   Arrow: string;
@@ -767,9 +684,9 @@ begin
     Grid.Canvas.FillRect(aRect); // Fill the cell background
 
     if SortAscending[aCol] then
-    Arrow := ' ↑' // Arrow pointing upwards for ascending order
+      Arrow := ' ↑' // Arrow pointing upwards for ascending order
     else
-     Arrow := ' ↓'; // Arrow pointing downwards for descending order
+      Arrow := ' ↓'; // Arrow pointing downwards for descending order
 
     Grid.Canvas.TextOut(aRect.Left + 2, aRect.Top + 2, Grid.Cells[aCol, aRow] + Arrow);
     //stringgrid1.AutoSizeColumns;
@@ -900,7 +817,7 @@ begin
 
     // Toggle the sort order for the next click
     SortAscending[Index] := not SortAscending[Index];
-     LastSortedColumn := Index;
+    LastSortedColumn := Index;
     StringGrid1.Invalidate;
   end;
 end;
@@ -1043,7 +960,7 @@ begin
     IPAddress.s_addr := htonl(I); // Convert back to network byte order
     IPList.Add(inet_ntoa(IPAddress)); // Convert to string and add to the list
   end;
-  //ProcessedIPs := 0;
+
   // Enqueue tasks into the TaskQueue
   for startIP in IPList do
   begin
@@ -1116,7 +1033,6 @@ begin
 
         Result := IntToStr(PingTime) + ' ms';
 
-        //Result := 1;
       end
 
       else
@@ -1167,7 +1083,6 @@ begin
     SortStringGrid;
     edit3.Text := 'Auto Sizing Comumns';
     StringGrid1.AutoSizeColumns;
-    //edit3.Text := 'Trim App Memory Size';
 
     Edit3.Text := 'Complete!';
   finally
@@ -1199,7 +1114,7 @@ var
   PortScanMenuItem: TMenuItem;
   LookupMACMenuItem, PingMenuItem, tracertmenuitem: TMenuItem;
 begin
-    LastSortedColumn := -1;
+  LastSortedColumn := -1;
   stoppressed := 0;
   // Initialize the critical section for thread synchronization
   ThreadLock := TCriticalSection.Create;
@@ -1297,15 +1212,17 @@ begin
           LookupMAC(MACPrefix, ShortName, LongName, dbname);
 
           // Show the results
-          ShowMessage('MAC Prefix: ' + MACPrefix + sLineBreak + 'Short Name: ' +
-            ShortName + sLineBreak + 'Long Name: ' + LongName);
+          ShowMessage('MAC Prefix: ' + MACPrefix + sLineBreak +
+            'Short Name: ' + ShortName + sLineBreak + 'Long Name: ' + LongName);
         end
         else
-          ShowMessage(dllname + ' Not found did you place it in the same directory as the exe?');
+          ShowMessage(dllname +
+            ' Not found did you place it in the same directory as the exe?');
 
       end
       else
-        ShowMessage(dbname + ' Not found did you place it in the same directory as the exe?');
+        ShowMessage(dbname +
+          ' Not found did you place it in the same directory as the exe?');
 
     end
     else
@@ -1651,8 +1568,8 @@ begin
 
     Result := Result + #13#10 + 'Ping statistics for ' + ipaddrval + ':'#13#10;
     Result := Result + 'Packets: Sent = ' + IntToStr(j) + ', Received = ' +
-      IntToStr(success) + ', Lost = ' + IntToStr(j - success) +
-      ' (' + IntToStr(trunc((100 - ((success / j) * 100)))) + '% loss)' + #13#10;
+      IntToStr(success) + ', Lost = ' + IntToStr(j - success) + ' (' +
+      IntToStr(trunc((100 - ((success / j) * 100)))) + '% loss)' + #13#10;
     Result := Result + 'Approximate round trip times in milli-seconds: ' +
       IntToStr(timetotal) + 'ms' + #13#10;
     Result := Result + 'Minimum = ' + IntToStr(low) + 'ms, Maximum = ' +
@@ -1744,7 +1661,8 @@ begin
     Ping.Free;
   end;
 end;
- initialization
+
+initialization
   SSLImplementation := TSSLOpenSSL;  // Initialize OpenSSL for SSL support
 
 end.
