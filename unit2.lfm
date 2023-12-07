@@ -24,6 +24,7 @@ object FormScanResults: TFormScanResults
     GridLineColor = clBlack
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll]
     TabOrder = 0
+    OnDrawCell = StringGridResultsDrawCell
   end
   object Edit1: TEdit
     Left = 8

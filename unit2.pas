@@ -6,7 +6,7 @@ interface
 
 uses
  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, StdCtrls, Menus,
-  clipbrd, ComCtrls, Windows, ShellAPI;
+  clipbrd, ComCtrls, Windows, ShellAPI, Types;
 
 
 var
@@ -28,6 +28,8 @@ type
     procedure OpenInDefaultApp(Sender: TObject);
     procedure OpenURL(URL: string);
     procedure FormWindowStateChange(Sender: TObject);
+    procedure StringGridResultsDrawCell(Sender: TObject; aCol, aRow: Integer;
+      aRect: TRect; aState: TGridDrawState);
   private
 
   public
@@ -58,6 +60,27 @@ begin
   //  FormScanResults.ShowInTaskBar := stAlways;
   //end;
 end;
+
+ procedure TFormScanResults.StringGridResultsDrawCell(Sender: TObject; aCol, aRow: Integer; aRect: TRect; aState: TGridDrawState);
+begin
+  with TStringGrid(Sender) do
+  begin
+    if aCol = 2 then // Check if third column
+    begin
+      if Cells[aCol, aRow] = 'Open' then
+        Canvas.Brush.Color := clred // Green for open
+      else if Cells[aCol, aRow] = 'Closed' then
+        Canvas.Brush.Color := clgreen // Red for closed
+      //else
+        //Canvas.Brush.Color := clWhite; // Default white for other values
+    end;
+    Canvas.FillRect(aRect); // Fill rectangle with the brush color
+    DefaultDrawCell(aCol, aRow, aRect, aState); // Default cell drawing
+  end;
+end;
+
+
+
 procedure TFormScanResults.FormCreate(Sender: TObject);
 var
   MenuItemcopy, MenuItemOpen: TMenuItem;
