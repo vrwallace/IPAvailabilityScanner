@@ -96,6 +96,8 @@ type
   TForm1 = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     Edit1: TEdit;
@@ -110,6 +112,8 @@ type
     StringGrid1: TStringGrid;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure SortStringGrid;
@@ -1132,6 +1136,17 @@ begin
   edit3.Text := 'Stopped!';
 
   // Additional logic to update the UI or application state can be added here
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+begin
+  edit1.Text := GetLocalIPAddress;
+
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+begin
+  edit2.text:=edit1.text;
 end;
 
 
