@@ -107,6 +107,8 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
     ProgressBar1: TProgressBar;
     SpinEdit1: TSpinEdit;
     StringGrid1: TStringGrid;
@@ -116,6 +118,7 @@ type
     procedure Button4Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure SortStringGrid;
     procedure MoveRow(Grid: TStringGrid; FromIndex, ToIndex: integer);
     procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: integer;
@@ -147,6 +150,7 @@ type
     function Pingtracertrttl(const Host: string): string;
     function SplitString(const aString, Delimiter: string): TStringList;
     function CompareIPs2(IP1, IP2: string): integer;
+    procedure OpenURL(URL: string);
   private
     CompletedScans: integer;
     SortAscending: array of boolean;
@@ -188,7 +192,10 @@ implementation
 //  // You can add additional handling here if needed
 //end;
 
-
+ procedure TForm1.OpenURL(URL: string);
+begin
+  ShellExecute(0, 'open', PChar(URL), nil, nil, SW_SHOWNORMAL);
+end;
 constructor TPortScanThread.Create(const IPAddress: string; Port: integer);
 begin
   inherited Create(True);
@@ -1487,6 +1494,11 @@ begin
 
   // Free other dynamically allocated resources
   // ...
+end;
+
+procedure TForm1.MenuItem1Click(Sender: TObject);
+begin
+  openurl('https://vonwallace.com');
 end;
 
 procedure TForm1.StartThreads;

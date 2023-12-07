@@ -1,12 +1,13 @@
 object Form1: TForm1
   Left = 687
-  Height = 383
+  Height = 363
   Top = 222
   Width = 360
-  Caption = 'IP Availability Scanner v1.28mq'
-  ClientHeight = 383
+  Caption = 'IP Availability Scanner v1.29mq'
+  ClientHeight = 363
   ClientWidth = 360
   Color = clWhite
+  Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
@@ -95,7 +96,7 @@ object Form1: TForm1
   object Edit3: TEdit
     Left = 13
     Height = 23
-    Top = 352
+    Top = 332
     Width = 335
     Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
@@ -120,7 +121,7 @@ object Form1: TForm1
   end
   object StringGrid1: TStringGrid
     Left = 13
-    Height = 128
+    Height = 108
     Top = 192
     Width = 335
     AlternateColor = clSilver
@@ -138,7 +139,7 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 13
     Height = 20
-    Top = 328
+    Top = 308
     Width = 335
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 9
@@ -160,5 +161,13 @@ object Form1: TForm1
     Caption = '↓ ↓ ↓ ↓'
     TabOrder = 11
     OnClick = Button4Click
+  end
+  object MainMenu1: TMainMenu
+    Left = 224
+    Top = 120
+    object MenuItem1: TMenuItem
+      Caption = 'Visit Website Vonwallace.com'
+      OnClick = MenuItem1Click
+    end
   end
 end
