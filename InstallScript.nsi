@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "IP Availability Scanner"
-!define PRODUCT_VERSION "1.24"
+!define PRODUCT_VERSION "1.25"
 !define PRODUCT_PUBLISHER "vonwallace.com"
 !define PRODUCT_WEB_SITE "http://vonwallace.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\ipavail.exe"

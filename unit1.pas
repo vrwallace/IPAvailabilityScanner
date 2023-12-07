@@ -259,25 +259,48 @@ begin
                  'Connection: keep-alive'#13#10#13#10;
 
     21, 20:
-      TriggerString := 'USER anonymous'#13#10'PASS guest'#13#10'SYST'#13#10'QUIT'#13#10; // FTP
+      TriggerString :=
+        'USER anonymous' + #13#10 +
+        'PASS guest' + #13#10 +
+        'SYST' + #13#10 +
+        'FEAT' + #13#10 + // Get supported features
+        'QUIT' + #13#10;    // FTP
 
     22:
       TriggerString := 'SSH-2.0-bannergrab'#13#10; // SSH
 
     25, 465, 587:
-      TriggerString := 'EHLO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10; // SMTP
+      TriggerString :=
+        'EHLO bannergrab.com' + #13#10 +
+        'HELO bannergrab.com' + #13#10 + // Try both EHLO and HELO
+        'HELP' + #13#10 +
+        'QUIT' + #13#10; // SMTP
 
     23:
       TriggerString := #13#10; // Telnet
 
     110, 995:
-      TriggerString := 'USER anonymous'#13#10'PASS guest'#13#10'STAT'#13#10'QUIT'#13#10; // POP3
+       TriggerString :=
+        'USER anonymous' + #13#10 +
+        'PASS guest' + #13#10 +
+        'STAT' + #13#10 +
+        'UIDL' + #13#10 + // Get unique identifiers for messages
+        'QUIT' + #13#10; // POP3
 
     143, 993:
-      TriggerString := 'a1 LOGIN anonymous guest'#13#10'a2 LIST "" "*"'#13#10'a3 LOGOUT'#13#10; // IMAP
+       TriggerString :=
+        'a1 LOGIN anonymous guest' + #13#10 +
+        'a2 LIST "" "*"' + #13#10 +
+        'a3 CAPA' + #13#10 + // Get supported capabilities
+        'a4 LOGOUT' + #13#10; // IMAP
 
     119, 563:
-      TriggerString := 'MODE READER'#13#10'LIST'#13#10'QUIT'#13#10; // NNTP
+       TriggerString :=
+        'MODE READER' + #13#10 +
+        'LIST' + #13#10 +
+        'GROUP' + #13#10 + // List available newsgroups
+        'ARTICLE 1' + #13#10 + // Retrieve specific article
+        'QUIT' + #13#10;
 
     161:
       TriggerString := HexToString('302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
