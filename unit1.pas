@@ -215,7 +215,7 @@ end;
 procedure TPortScanThread.DoScan;
 var
   TcpSock: TTCPBlockSocket;
-  SSLPorts: array[0..15] of integer;
+  SSLPorts: array[0..16] of integer;
   IsSSLPort: boolean;
   TriggerString: string;
   i: integer;
@@ -309,59 +309,6 @@ begin
 
 
 
-  ////
-
-  //// Initialize TriggerString based on the port
-  //case FScanResult.Port of
-  //  80, 443, 2082, 2083, 2086, 2087, 2095, 2096, 8080, 8081, 8000, 8443, 8888, 10000:
-  //    TriggerString := 'GET / HTTP/1.0'#13#10#13#10;  // HTTP and common alternate ports
-  //  21, 20:
-  //    TriggerString := 'HELP'#10'USER anonymous'#10'PASS banner@grab.com'#10'QUIT'#10;
-  //  // FTP
-  //  22:
-  //    TriggerString := ''; // SSH, typically doesn't have a banner
-  //  25, 465, 587:
-  //    TriggerString := 'HELO bannergrab.com'#13#10'HELP'#13#10'QUIT'#13#10;
-  //  // SMTP and related email ports
-  //  23:
-  //    TriggerString := #13#10; // Telnet
-  //  110, 995:
-  //    TriggerString := 'QUIT'#13#10;   // POP3
-  //  143, 993:
-  //    TriggerString := 'CAPABILITY'#13#10; // IMAP
-  //  119, 563:
-  //    TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10; // NNTP
-  //  161:
-  //    TriggerString := HexToString(
-  //      '302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
-  //  389, 636:
-  //    TriggerString := HexToString(
-  //      '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
-  //  //ldap
-  //  // LDAP
-  //  1433:
-  //    TriggerString := HexToString(
-  //      '100100e000000100d80000000100007100000000000000076c04000000000000e0030000000000000908000056000a006a000a007e0000007e002000be00090000000000d0000400d8000000d8000000000c29c6634200000000c8000000420061006e006e00650072004700720061006200420061006e006e006500720047007200610062004d006900630072006f0073006f0066007400200044006100740061002000410063006300650073007300200043006f006d0070006f006e0065006e00740073003100320037002e0030002e0030002e0031004f00440042004300'); // Microsoft SQL Server
-  //  3306:
-  //    TriggerString := ''; // MySQL, typically doesn't use a banner
-  //  5432:
-  //    TriggerString := ''; // PostgreSQL, typically doesn't use a banner
-  //  7, 9:
-  //    TriggerString := 'Echo'#13#10;// Echo
-  //  137:
-  //    TriggerString := HexToString(
-  //      'a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
-  //  // NetBIOS Name Service
-  //  123:
-  //    TriggerString := HexToString(
-  //      'e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');
-  //  // NTP
-  //  79:
-  //    TriggerString := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10; // Finger
-  //    // Add more ports and triggers as needed
-  //  else
-  //    TriggerString := '';
-  //end;
 
 
 
