@@ -8,8 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
   SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,
-  unit3, blcksock, Types,ssl_openssl3;
-
+  unit3, blcksock, Types, ssl_openssl3;
 
 var
 
@@ -215,11 +214,39 @@ end;
 
 procedure TPortScanThread.DoScan;
 var
-  TriggerString: string;
   TcpSock: TTCPBlockSocket;
+  SSLPorts: array[0..15] of integer;
+  IsSSLPort: boolean;
+  TriggerString: string;
+  i: integer;
 begin
+  // Define SSL/TLS ports
 
-   // Initialize TriggerString based on the port
+
+  // Correctly define SSL/TLS ports
+  SSLPorts[0] := 443;
+  SSLPorts[1] := 993;
+  SSLPorts[2] := 995;
+  SSLPorts[3] := 465;
+  SSLPorts[4] := 587;
+  SSLPorts[5] := 636;
+
+  SSLPorts[6] := 989;
+  SSLPorts[7] := 990;
+  SSLPorts[8] := 992;
+  SSLPorts[9] := 1311;
+  SSLPorts[10] := 2083;
+  SSLPorts[11] := 2087;
+  SSLPorts[12] := 2096;
+  SSLPorts[13] := 8443;
+
+  SSLPorts[14] := 8888;
+  SSLPorts[15] := 9091;
+  SSLPorts[15] := 10000;
+
+
+
+  // Initialize TriggerString based on the port
   case FScanResult.Port of
     80, 443, 2082, 2083, 2086, 2087, 2095, 2096, 8080, 8081, 8000, 8443, 8888, 10000:
       TriggerString := 'GET / HTTP/1.0'#13#10#13#10;  // HTTP and common alternate ports
@@ -237,14 +264,15 @@ begin
       TriggerString := 'QUIT'#13#10;   // POP3
     143, 993:
       TriggerString := 'CAPABILITY'#13#10; // IMAP
-    119,563:
+    119, 563:
       TriggerString := 'HELP'#13#10'LIST NEWSGROUPS'#13#10'QUIT'#13#10; // NNTP
     161:
       TriggerString := HexToString(
         '302902010004067075626c6963a01c0204ffffffff020100020100300e300c06082b060102010101000500302a020100040770726976617465a01c0204fffffffe020100020100300e300c06082b060102010101000500'); // SNMP
     389, 636:
       TriggerString := HexToString(
-        '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');   //ldap
+        '300c0201016007020103040080003035020102633004000a01000a0100020100020100010100870b6f626a656374436c6173733010040e6e616d696e67636f6e7465787473');
+    //ldap
     // LDAP
     1433:
       TriggerString := HexToString(
@@ -260,7 +288,9 @@ begin
         'a2480000000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001');
     // NetBIOS Name Service
     123:
-      TriggerString := HexToString('e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');  // NTP
+      TriggerString := HexToString(
+        'e30004fa000100000001000000000000000000000000000000000000000000000000000000000000ca9ba3352d7f950b160200010000000000000000160100010000000000000000');
+    // NTP
     79:
       TriggerString := 'root bin lp wheel spool adm mail postmaster news uucp snmp daemon'#13#10; // Finger
       // Add more ports and triggers as needed
@@ -268,18 +298,58 @@ begin
       TriggerString := '';
   end;
 
+
+
+
+  // Check if the port is an SSL/TLS port
+  IsSSLPort := False;
+  for i := Low(SSLPorts) to High(SSLPorts) do
+  begin
+    if SSLPorts[i] = FScanResult.Port then
+    begin
+      IsSSLPort := True;
+      Break;
+    end;
+  end;
+
   TcpSock := TTCPBlockSocket.Create;
   try
+    // Set connection timeout
     TcpSock.ConnectionTimeout := Form1.SpinEdit1.Value;
+
+    // Connect to the server
     TcpSock.Connect(FScanResult.IPAddress, IntToStr(FScanResult.Port));
 
     if TcpSock.LastError = 0 then
     begin
       FScanResult.Status := 'Open';
 
-      // Sending and receiving data
-      TcpSock.SendString(TriggerString);
-      FScanResult.Banner := TcpSock.RecvTerminated(5000, CRLF);
+      // Determine the trigger string based on the port, customize as needed
+      // ... (Your logic for setting TriggerString based on FScanResult.Port)
+
+      if IsSSLPort then
+      begin
+        // Attempt SSL/TLS connection
+        TcpSock.SSLDoConnect;
+        if TcpSock.LastError <> 0 then
+        begin
+          // Handle SSL/TLS connection error, perhaps log or set FScanResult.Status
+          Exit;
+        end;
+
+        // SSL/TLS connection successful, send trigger string
+        TcpSock.SendString(TriggerString);
+        FScanResult.Banner := TcpSock.RecvTerminated(5000, CRLF);
+      end
+      else
+      begin
+        // Normal connection, send trigger string
+        TcpSock.SendString(TriggerString);
+        FScanResult.Banner := TcpSock.RecvTerminated(5000, CRLF);
+      end;
+
+      // Handle the received banner or data as per your requirement
+      // ...
 
     end
     else
@@ -289,8 +359,6 @@ begin
     TcpSock.Free;
   end;
 end;
-
-
 
 
 procedure TPortScanThread.UpdateGridWrapper;
@@ -415,8 +483,13 @@ begin
     554: Result := 'Real Time Streaming Protocol (RTSP)';
     587: Result := 'SMTP Mail Submission';
     631: Result := 'Internet Printing Protocol (IPP)';
+    636: Result := 'LDAP over SSL/TLS';
     993: Result := 'IMAPS - IMAP over SSL';
     995: Result := 'POP3S - POP3 over SSL';
+    989: Result := 'FTPS implicit mode';
+    990: Result := 'FTPS control (command) connection in implicit mode';
+    992: Result := 'Telnet over SSL';
+    1311: Result := 'Dell OpenManage';
     1433: Result := 'Microsoft SQL Server';
     1521: Result := 'Oracle database default listener';
     1723: Result := 'Point-to-Point Tunneling Protocol (PPTP)';
@@ -437,6 +510,8 @@ begin
     6001: Result := 'X11:1';
     8080: Result := 'HTTP Alternate (http_alt)';
     8443: Result := 'HTTPS Alternate';
+    8888: Result := 'HTTPS Applications Misc';
+    9091: Result := 'BitTorrent';
     10000: Result := 'Webmin';
     else
       Result := 'Unknown';
@@ -455,10 +530,9 @@ var
   i, PortNumber: integer;
 begin
   PortListstring :=
-    '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,' +
-    '993,995,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
-    +
-    '5432,5900,6001,8080,8443,10000';
+    '20,21,22,23,25,53,80,110,119,123,135,139,143,161,194,389,443,445,465,554,587,631,636,'
+    + '993,995,989,990,992,1311,1433,1521,1723,2049,2082,2083,2086,2087,2095,2096,3306,3389,5060,5222,5269,'
+    + '5432,5900,6001,8080,8443,8888,9091,10000';
   unit2.stoppressed := 0;
   // Check if a row is selected
   SelectedRow := StringGrid1.Row; // Assuming StringGrid1 is your main form StringGrid
@@ -1664,6 +1738,6 @@ begin
 end;
 
 initialization
-SSLImplementation := TSSLOpenSSL3;  // Initialize OpenSSL for SSL support
+  SSLImplementation := TSSLOpenSSL3;  // Initialize OpenSSL for SSL support
 
 end.
