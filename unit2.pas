@@ -111,7 +111,7 @@ begin
   ScreenHeight := Screen.Height;
 
   // Calculate the form size as 70% of the screen size
-  FormWidth := Round(ScreenWidth * 0.3);
+  FormWidth := Round(ScreenWidth * 0.5);
   FormHeight := Round(ScreenHeight * 0.7);
 
   // Set the form's width and height
