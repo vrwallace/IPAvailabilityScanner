@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
-  SyncObjs, Clipbrd, Menus, ComCtrls, unit2, sqlite3conn, sqldb,
+  SyncObjs, Clipbrd, Menus, ComCtrls, ExtCtrls, unit2, sqlite3conn, sqldb,
   unit3, blcksock, Types, ssl_openssl3;
 
 var
@@ -103,10 +103,14 @@ type
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
+    GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    EditBoxTotal: TLabeledEdit;
+    EditBoxUsed: TLabeledEdit;
+    EditBoxFree: TLabeledEdit;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     ProgressBar1: TProgressBar;
@@ -1043,6 +1047,9 @@ var
   startIP, endIP: string;
   Task: TPingTask;
 begin
+  EditBoxTotal.Text := 'N/A';
+  EditBoxUsed.Text := 'N/A';
+  EditBoxFree.Text := 'N/A';
 
   progressbar1.Position := 0;
   ActiveTasks := 0;
@@ -1219,10 +1226,37 @@ end;
 
 
 procedure TForm1.FinalizeTasks;
+var
+TotalIPs, UsedIPs, FreeIPs, i: Integer;
 begin
 
   ThreadLock.Acquire;
   try
+
+     edit3.Text := 'Calculating Stats';
+  TotalIPs := 0;
+  UsedIPs := 0;
+
+  // Assuming StringGrid1 is your TStringGrid
+  for i := 1 to StringGrid1.RowCount - 1 do
+  begin
+    // Count every IP in the grid
+    if StringGrid1.Cells[0, i] <> '' then Inc(TotalIPs);
+
+    // Check if column 1 contains 'ms' or column 3 contains '-'
+    if (Pos('ms', StringGrid1.Cells[1, i]) > 0) or (StringGrid1.Cells[3, i] = '-') then
+      Inc(UsedIPs);
+  end;
+
+  FreeIPs := TotalIPs - UsedIPs;
+
+  // Update the TEdit controls
+  EditBoxTotal.Text := IntToStr(TotalIPs);
+  EditBoxUsed.Text := IntToStr(UsedIPs);
+  EditBoxFree.Text := IntToStr(FreeIPs);
+
+
+
     SortStringGrid;
     edit3.Text := 'Auto Sizing Comumns';
     StringGrid1.AutoSizeColumns;
