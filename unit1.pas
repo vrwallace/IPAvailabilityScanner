@@ -1047,6 +1047,8 @@ var
   startIP, endIP: string;
   Task: TPingTask;
 begin
+
+  LastSortedColumn := -1;
   EditBoxTotal.Text := 'N/A';
   EditBoxUsed.Text := 'N/A';
   EditBoxFree.Text := 'N/A';
