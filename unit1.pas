@@ -14,7 +14,7 @@ var
 
 
   ThreadLock: TCriticalSection;
-  MaxThreads: integer = 255; // Set your max threads here
+  MaxThreads: integer = 100; // Set your max threads here
   IPList: TStringList;
   ActiveTasks: integer = 0;
   crlf: string = #13#10;
@@ -111,10 +111,12 @@ type
     EditBoxTotal: TLabeledEdit;
     EditBoxUsed: TLabeledEdit;
     EditBoxFree: TLabeledEdit;
+    Label5: TLabel;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     ProgressBar1: TProgressBar;
     SpinEdit1: TSpinEdit;
+    SpinEdit2: TSpinEdit;
     StringGrid1: TStringGrid;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -1047,7 +1049,7 @@ var
   startIP, endIP: string;
   Task: TPingTask;
 begin
-
+  maxthreads:=spinedit2.value;
   LastSortedColumn := -1;
   EditBoxTotal.Text := 'N/A';
   EditBoxUsed.Text := 'N/A';

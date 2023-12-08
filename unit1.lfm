@@ -1,10 +1,10 @@
 object Form1: TForm1
   Left = 687
-  Height = 363
+  Height = 488
   Top = 222
   Width = 564
-  Caption = 'IP Availability Scanner v1.33mq'
-  ClientHeight = 363
+  Caption = 'IP Availability Scanner v1.34mq'
+  ClientHeight = 488
   ClientWidth = 564
   Color = clWhite
   Menu = MainMenu1
@@ -49,7 +49,7 @@ object Form1: TForm1
   object Button1: TButton
     Left = 288
     Height = 20
-    Top = 122
+    Top = 168
     Width = 60
     Caption = 'Start'
     TabOrder = 2
@@ -59,7 +59,7 @@ object Form1: TForm1
   object Button2: TButton
     Left = 288
     Height = 20
-    Top = 154
+    Top = 200
     Width = 60
     Caption = 'Stop'
     TabOrder = 3
@@ -96,7 +96,7 @@ object Form1: TForm1
   object Edit3: TEdit
     Left = 13
     Height = 23
-    Top = 332
+    Top = 457
     Width = 539
     Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
@@ -105,7 +105,7 @@ object Form1: TForm1
   object CheckBox1: TCheckBox
     Left = 19
     Height = 19
-    Top = 122
+    Top = 168
     Width = 121
     Caption = 'Resolve Host Name'
     TabOrder = 6
@@ -114,15 +114,15 @@ object Form1: TForm1
   object CheckBox2: TCheckBox
     Left = 19
     Height = 19
-    Top = 154
+    Top = 200
     Width = 224
     Caption = 'Resolve MAC Address and Find Hidden'
     TabOrder = 7
   end
   object StringGrid1: TStringGrid
     Left = 13
-    Height = 108
-    Top = 192
+    Height = 193
+    Top = 232
     Width = 539
     AlternateColor = clSilver
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -139,7 +139,7 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 13
     Height = 20
-    Top = 308
+    Top = 433
     Width = 539
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 9
@@ -212,6 +212,23 @@ object Form1: TForm1
       TabOrder = 2
       Text = 'N/A'
     end
+  end
+  object Label5: TLabel
+    Left = 19
+    Height = 15
+    Top = 128
+    Width = 67
+    Caption = 'Max Threads'
+  end
+  object SpinEdit2: TSpinEdit
+    Left = 102
+    Height = 23
+    Top = 128
+    Width = 85
+    MaxValue = 255
+    MinValue = 1
+    TabOrder = 13
+    Value = 100
   end
   object MainMenu1: TMainMenu
     Left = 224
