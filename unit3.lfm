@@ -6,6 +6,7 @@ object pingtrace: Tpingtrace
   Caption = 'Ping / Traceroute'
   ClientHeight = 240
   ClientWidth = 320
+  OnCreate = FormCreate
   Position = poDesktopCenter
   ShowInTaskBar = stAlways
   LCLVersion = '3.0.0.2'

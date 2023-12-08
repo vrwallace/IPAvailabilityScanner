@@ -1256,6 +1256,8 @@ var
   CopyMenuItem: TMenuItem;
   PortScanMenuItem: TMenuItem;
   LookupMACMenuItem, PingMenuItem, tracertmenuitem: TMenuItem;
+   ScreenWidth, ScreenHeight: Integer;
+  FormWidth, FormHeight: Integer;
 begin
   LastSortedColumn := -1;
   stoppressed := 0;
@@ -1327,6 +1329,23 @@ begin
   FillChar(SortAscending[0], Length(SortAscending) * SizeOf(boolean), False);
 
   // Other initializations...
+
+   // Get the screen width and height
+  ScreenWidth := Screen.Width;
+  ScreenHeight := Screen.Height;
+
+  // Calculate the form size as 70% of the screen size
+  FormWidth := Round(ScreenWidth * 0.3);
+  FormHeight := Round(ScreenHeight * 0.7);
+
+  // Set the form's width and height
+  Width := FormWidth;
+  Height := FormHeight;
+
+  // Optionally, center the form on the screen
+  Left := (ScreenWidth - FormWidth) div 2;
+  Top := (ScreenHeight - FormHeight) div 2;
+
 end;
 
 procedure TForm1.LookupMACMenuItemClick(Sender: TObject);

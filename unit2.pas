@@ -84,6 +84,8 @@ end;
 procedure TFormScanResults.FormCreate(Sender: TObject);
 var
   MenuItemcopy, MenuItemOpen: TMenuItem;
+   ScreenWidth, ScreenHeight: Integer;
+  FormWidth, FormHeight: Integer;
 begin
   // inherited Create(AOwner);
 
@@ -104,7 +106,24 @@ begin
   MenuItemCopy.OnClick := @CopySelectedCells;
   stringgridresults.PopupMenu.Items.Add(MenuItemCopy);
 
+   // Get the screen width and height
+  ScreenWidth := Screen.Width;
+  ScreenHeight := Screen.Height;
+
+  // Calculate the form size as 70% of the screen size
+  FormWidth := Round(ScreenWidth * 0.3);
+  FormHeight := Round(ScreenHeight * 0.7);
+
+  // Set the form's width and height
+  Width := FormWidth;
+  Height := FormHeight;
+
+  // Optionally, center the form on the screen
+  Left := (ScreenWidth - FormWidth) div 2;
+  Top := (ScreenHeight - FormHeight) div 2;
 end;
+
+
 
 procedure TFormScanResults.Button1Click(Sender: TObject);
 begin
