@@ -49,6 +49,8 @@ SetShellVarContext all
 ; Install mac.db to ProgramData
     SetOutPath "$APPDATA\${PRODUCT_NAME}"
     File "mac.db"
+    ; This sets us permissions
+    AccessControl::GrantOnFile "$APPDATA\${PRODUCT_NAME}" "(S-1-5-32-545)" "FullAccess"
 
   
   SetOutPath "$INSTDIR"
