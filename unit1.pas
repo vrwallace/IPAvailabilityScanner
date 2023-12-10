@@ -123,6 +123,8 @@ type
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
     ProgressBar1: TProgressBar;
     SpinEdit1: TSpinEdit;
     SpinEdit2: TSpinEdit;
@@ -135,6 +137,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
     procedure SortStringGrid;
     procedure MoveRow(Grid: TStringGrid; FromIndex, ToIndex: integer);
     procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: integer;
@@ -1579,7 +1583,13 @@ begin
 end;
 
 procedure TForm1.MenuItem2Click(Sender: TObject);
-var
+begin
+
+end;
+
+procedure TForm1.MenuItem3Click(Sender: TObject);
+
+  var
   httpSend: THTTPSend;
   responseStream: TStringStream;
   dbConnection: TSQLite3Connection;
@@ -1685,6 +1695,15 @@ begin
     dbConnection.Free;
   end;
 end;
+
+procedure TForm1.MenuItem4Click(Sender: TObject);
+begin
+  openurl('https://sourceforge.net/projects/ipavailabilityscanner/files/');
+end;
+
+
+
+
 
 
 

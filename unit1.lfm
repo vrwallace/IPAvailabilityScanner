@@ -1,9 +1,9 @@
 object Form1: TForm1
-  Left = 687
+  Left = 737
   Height = 488
-  Top = 222
+  Top = 233
   Width = 564
-  Caption = 'IP Availability Scanner v1.37mq'
+  Caption = 'IP Availability Scanner v1.38mq'
   ClientHeight = 488
   ClientWidth = 564
   Color = clWhite
@@ -234,12 +234,20 @@ object Form1: TForm1
     Left = 224
     Top = 120
     object MenuItem1: TMenuItem
-      Caption = 'Visit Website Vonwallace.com'
+      Caption = 'Visit VONWALLACE.COM'
       OnClick = MenuItem1Click
     end
     object MenuItem2: TMenuItem
-      Caption = 'Update MAC Database'
+      Caption = 'Update'
       OnClick = MenuItem2Click
+      object MenuItem3: TMenuItem
+        Caption = 'Update MAC Database'
+        OnClick = MenuItem3Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Check SOURCEFORGE'
+        OnClick = MenuItem4Click
+      end
     end
   end
 end
