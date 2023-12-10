@@ -1442,7 +1442,7 @@ begin
       end
       else
         ShowMessage(dbname +
-          ' Not found did you place it in the same directory as the exe?');
+          ' Not found, Update MAC Database.');
 
     end
     else
