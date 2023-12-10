@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 488
   Top = 222
   Width = 564
-  Caption = 'IP Availability Scanner v1.35mq'
+  Caption = 'IP Availability Scanner v1.36mq'
   ClientHeight = 488
   ClientWidth = 564
   Color = clWhite
