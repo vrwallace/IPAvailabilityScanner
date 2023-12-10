@@ -5,10 +5,17 @@ unit Unit1;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  Classes,SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Grids, pingsend, winsock, sockets, Windows,
   SyncObjs, Clipbrd, Menus, ComCtrls, ExtCtrls, unit2, sqlite3conn, sqldb,
-  unit3, blcksock, Types, ssl_openssl3;
+  unit3, blcksock, Types, ssl_openssl3,httpsend;
+
+
+
+
+
+
+
 
 var
 
@@ -32,6 +39,7 @@ type
 type
   TPortScanThread = class(TThread)
   private
+
     FScanResult: TScanResult;
     procedure UpdateGrid;
     procedure UpdateGridWrapper;
@@ -114,6 +122,7 @@ type
     Label5: TLabel;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     ProgressBar1: TProgressBar;
     SpinEdit1: TSpinEdit;
     SpinEdit2: TSpinEdit;
@@ -125,6 +134,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure SortStringGrid;
     procedure MoveRow(Grid: TStringGrid; FromIndex, ToIndex: integer);
     procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: integer;
@@ -1391,7 +1401,17 @@ var
   MACAddress: string;
   ShortName, LongName: string;
   MACPrefix, dbname, dllname: string;
+  dbPath, dbDirectory: string;
 begin
+
+
+   // Get ProgramData directory
+  dbDirectory := sysutils.GetEnvironmentVariable('ProgramData') + '\IP Availability Scanner';
+  // Ensure the directory exists
+
+  // Set the path for mac.db
+  dbPath := dbDirectory + '\mac.db';
+
   if StringGrid1.Row >= 0 then
   begin
     MACAddress := StringGrid1.Cells[3, StringGrid1.Row];
@@ -1402,7 +1422,7 @@ begin
     begin
 
       MACPrefix := StringReplace(Copy(MACAddress, 1, 8), '-', ':', [rfReplaceAll]);
-      dbname := 'mac.db';
+      dbname := dbPath;
       dllname := 'sqlite3.dll';
       if FileExists(dbname) then
       begin
@@ -1557,6 +1577,118 @@ procedure TForm1.MenuItem1Click(Sender: TObject);
 begin
   openurl('https://vonwallace.com');
 end;
+
+procedure TForm1.MenuItem2Click(Sender: TObject);
+var
+  httpSend: THTTPSend;
+  responseStream: TStringStream;
+  dbConnection: TSQLite3Connection;
+  sqlTransaction: TSQLTransaction;
+  sqlCommand: TSQLQuery;
+  lines, parts: TStringList;
+  i: Integer;
+  source: string;
+  dbPath, dbDirectory: string;
+begin
+
+      // Get ProgramData directory
+  dbDirectory := sysutils.GetEnvironmentVariable('ProgramData') + '\IP Availability Scanner';
+  // Ensure the directory exists
+  if not DirectoryExists(dbDirectory) then
+    CreateDir(dbDirectory);
+
+  // Set the path for mac.db
+  dbPath := dbDirectory + '\mac.db';
+
+  source := 'https://www.wireshark.org/download/automated/data/manuf';
+  try
+    try
+      // Initialize HTTP client and response stream
+      httpSend := THTTPSend.Create;
+      responseStream := TStringStream.Create('');
+
+      // Make HTTP GET request
+      if httpSend.HTTPMethod('GET', source) then
+        responseStream.CopyFrom(httpSend.Document, 0);
+
+      // Initialize SQLite database connection and components
+      dbConnection := TSQLite3Connection.Create(nil);
+      sqlTransaction := TSQLTransaction.Create(dbConnection);
+      sqlCommand := TSQLQuery.Create(nil);
+      lines := TStringList.Create;
+      parts := TStringList.Create;
+
+      // Load the content of the response into lines
+      lines.Text := responseStream.DataString;
+
+      // Set up database connection and transaction
+      dbConnection.DatabaseName := dbPath;
+      dbConnection.Connected := True;
+      sqlCommand.Database := dbConnection;
+      sqlCommand.Transaction := sqlTransaction;
+      sqlTransaction.Database := dbConnection;
+      sqlTransaction.StartTransaction;
+
+      // Create table and clear existing data
+      sqlCommand.SQL.Text := 'CREATE TABLE IF NOT EXISTS mac_addresses (' +
+                             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+                             'prefix TEXT NOT NULL, ' +
+                             'short_name TEXT, ' +
+                             'full_name TEXT);';
+      sqlCommand.ExecSQL;
+
+      sqlCommand.SQL.Text := 'DELETE FROM mac_addresses';
+      sqlCommand.ExecSQL;
+
+      sqlCommand.SQL.Text := 'CREATE INDEX IF NOT EXISTS idx_prefix ON mac_addresses (prefix)';
+      sqlCommand.ExecSQL;
+
+      // Process each line
+      for i := 0 to lines.Count - 1 do
+      begin
+        if Pos('#', lines[i]) > 0 then
+          continue;
+
+        parts.Clear;
+        parts.Delimiter := #9;
+        parts.StrictDelimiter := True;
+        parts.DelimitedText := lines[i];
+
+        if parts.Count >= 3 then
+        begin
+          sqlCommand.SQL.Text := 'INSERT INTO mac_addresses (prefix, short_name, full_name) VALUES (:prefix, :shortName, :fullName)';
+          sqlCommand.ParamByName('prefix').AsString := Trim(parts[0]);
+          sqlCommand.ParamByName('shortName').AsString := Trim(parts[1]);
+          sqlCommand.ParamByName('fullName').AsString := Trim(parts[2]);
+          sqlCommand.ExecSQL;
+        end;
+      end;
+
+      // Commit the transaction
+      sqlTransaction.Commit;
+      ShowMessage(source + ' Import Complete!');
+
+    except
+      on E: Exception do
+      begin
+        ShowMessage('Error occurred: ' + E.Message);
+      end;
+    end;
+  finally
+    // Free all resources
+    httpSend.Free;
+    responseStream.Free;
+    parts.Free;
+    lines.Free;
+    sqlCommand.Free;
+    sqlTransaction.Free;
+    dbConnection.Free;
+  end;
+end;
+
+
+
+
 
 procedure TForm1.StartThreads;
 var
