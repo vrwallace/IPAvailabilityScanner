@@ -144,49 +144,47 @@ begin
     PortStr := StringGridResults.Cells[1, SelectedRow];
 
     if TryStrToInt(PortStr, Port) then
-    begin
-      case Port of
-        80: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
-        443: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
-        22: URL := 'ssh://' + IPAddress + ':' + IntToStr(Port);
-        21: URL := 'ftp://' + IPAddress + ':' + IntToStr(Port);
-        23: URL := 'telnet://' + IPAddress + ':' + IntToStr(Port);
-        445: URL := '\\' + IPAddress; // SMB Protocol
-        3389: URL := 'rdp://' + IPAddress + ':' + IntToStr(Port);
-        3306: URL := 'mysql://' + IPAddress + ':' + IntToStr(Port); // MySQL
-        1433: URL := 'mssql://' + IPAddress + ':' + IntToStr(Port); // Microsoft SQL Server
-        5432: URL := 'postgresql://' + IPAddress + ':' + IntToStr(Port); // PostgreSQL
-        5900: URL := 'vnc://' + IPAddress + ':' + IntToStr(Port); // VNC
-        5060: URL := 'sip://' + IPAddress + ':' + IntToStr(Port); // SIP
-        25: URL := 'telnet://' + IPAddress+ ':' + IntToStr(Port);
-        // SMTP, typically doesn't use URL but can be used for mailto
-        119: URL := 'news://' + IPAddress + ':' + IntToStr(Port); // NNTP
-        2049: URL := 'nfs://' + IPAddress + ':' + IntToStr(Port); // NFS
-        8080, 8000: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
-        // Common alternative HTTP ports
-        8443: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
-        // Common alternative HTTPS port
-        10000: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
-        // Common alternative HTTPS port
-        2082: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
-        2083: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
-        2086: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
-        2087: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
-        2095: URL := 'http://' + IPAddress + ':' + IntToStr(Port);
-        2096: URL := 'https://' + IPAddress + ':' + IntToStr(Port);
+begin
+  case Port of
+    80, 8080, 8000, 2082, 2086, 2095: URL := 'http://' + IPAddress + ':' + IntToStr(Port); // HTTP
+    443, 8443, 10000, 2083, 2087, 2096: URL := 'https://' + IPAddress + ':' + IntToStr(Port); // HTTPS
+    21: URL := 'ftp://' + IPAddress + ':' + IntToStr(Port); // FTP
+    22, 2222: URL := 'ssh://' + IPAddress + ':' + IntToStr(Port); // SSH and SFTP
+    23, 25: URL := 'telnet://' + IPAddress + ':' + IntToStr(Port); // TELNET and SMTP
+    465: URL := 'smtps://' + IPAddress + ':' + IntToStr(Port); // SMTPS
+    587: URL := 'smtp://' + IPAddress + ':' + IntToStr(Port); // SMTP alternative
+    110: URL := 'pop3://' + IPAddress + ':' + IntToStr(Port); // POP3
+    995: URL := 'pop3s://' + IPAddress + ':' + IntToStr(Port); // POP3S
+    143: URL := 'imap://' + IPAddress + ':' + IntToStr(Port); // IMAP
+    993: URL := 'imaps://' + IPAddress + ':' + IntToStr(Port); // IMAPS
+    119: URL := 'news://' + IPAddress + ':' + IntToStr(Port); // NNTP
+    3306: URL := 'mysql://' + IPAddress + ':' + IntToStr(Port); // MySQL
+    1433: URL := 'mssql://' + IPAddress + ':' + IntToStr(Port); // Microsoft SQL Server
+    5432: URL := 'postgresql://' + IPAddress + ':' + IntToStr(Port); // PostgreSQL
+    3389: URL := 'rdp://' + IPAddress + ':' + IntToStr(Port); // RDP
+    445: URL := '\\' + IPAddress; // SMB Protocol
+    554: URL := 'rtsp://' + IPAddress + ':' + IntToStr(Port); // RTSP
+    1935: URL := 'rtmp://' + IPAddress + ':' + IntToStr(Port); // RTMP
+    5060: URL := 'sip://' + IPAddress + ':' + IntToStr(Port); // SIP
+    389: URL := 'ldap://' + IPAddress + ':' + IntToStr(Port); // LDAP
+    636: URL := 'ldaps://' + IPAddress + ':' + IntToStr(Port); // LDAPS
+    6379: URL := 'redis://' + IPAddress + ':' + IntToStr(Port); // Redis
+    27017: URL := 'mongodb://' + IPAddress + ':' + IntToStr(Port); // MongoDB
+    5672: URL := 'amqp://' + IPAddress + ':' + IntToStr(Port); // RabbitMQ
+    5900: URL := 'vnc://' + IPAddress + ':' + IntToStr(Port); // VNC
+    2049: URL := 'nfs://' + IPAddress + ':' + IntToStr(Port); // NFS
+    // Add any additional specific ports and protocols here
+    else
+      Exit; // Do nothing for unknown ports
+  end;
+
+  // Open the URL with the default application
+  if URL <> '' then
+    OpenURL(URL);
+end;
 
 
 
-          // Add other ports and protocols as needed
-        else
-          Exit; // Do nothing for unknown ports
-      end;
-
-      // Open the URL with the default application
-      if URL <> '' then
-        OpenURL(URL);
-
-    end;
   end;
 end;
 
