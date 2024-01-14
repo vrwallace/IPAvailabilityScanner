@@ -1,22 +1,23 @@
 object FormScanResults: TFormScanResults
   Left = 1102
-  Height = 325
+  Height = 750
   Top = 163
-  Width = 317
+  Width = 659
   Caption = 'Port Scan Results'
-  ClientHeight = 325
-  ClientWidth = 317
+  ClientHeight = 750
+  ClientWidth = 659
   Color = clWhite
+  DesignTimePPI = 144
   OnCreate = FormCreate
   OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.0.0.2'
+  LCLVersion = '3.1.0.0'
   object StringGridResults: TStringGrid
-    Left = 8
-    Height = 224
-    Top = 8
-    Width = 304
+    Left = 12
+    Height = 598
+    Top = 12
+    Width = 639
     AlternateColor = clSilver
     Anchors = [akTop, akLeft, akRight, akBottom]
     FixedColor = clForm
@@ -27,27 +28,27 @@ object FormScanResults: TFormScanResults
     OnDrawCell = StringGridResultsDrawCell
   end
   object Edit1: TEdit
-    Left = 8
-    Height = 23
-    Top = 288
-    Width = 304
+    Left = 12
+    Height = 33
+    Top = 696
+    Width = 639
     Anchors = [akLeft, akRight, akBottom]
     ReadOnly = True
     TabOrder = 1
   end
   object ProgressBar1: TProgressBar
-    Left = 8
-    Height = 20
-    Top = 264
-    Width = 304
+    Left = 12
+    Height = 30
+    Top = 658
+    Width = 639
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 2
   end
   object Button1: TButton
-    Left = 237
-    Height = 25
-    Top = 232
-    Width = 75
+    Left = 539
+    Height = 38
+    Top = 610
+    Width = 112
     Anchors = [akRight, akBottom]
     Caption = 'Stop'
     TabOrder = 3

@@ -1310,6 +1310,7 @@ var
   LookupMACMenuItem, PingMenuItem, tracertmenuitem: TMenuItem;
    ScreenWidth, ScreenHeight: Integer;
   FormWidth, FormHeight: Integer;
+
 begin
   LastSortedColumn := -1;
   stoppressed := 0;
@@ -1387,16 +1388,18 @@ begin
   ScreenHeight := Screen.Height;
 
   // Calculate the form size as 70% of the screen size
-  FormWidth := Round(ScreenWidth * 0.5);
-  FormHeight := Round(ScreenHeight * 0.7);
+ // FormWidth := Round(ScreenWidth * 0.5);
+  //FormHeight := Round(ScreenHeight * 0.7);
 
   // Set the form's width and height
-  Width := FormWidth;
-  Height := FormHeight;
+  //Width := FormWidth;
+  //Height := FormHeight;
 
   // Optionally, center the form on the screen
   Left := (ScreenWidth - FormWidth) div 2;
   Top := (ScreenHeight - FormHeight) div 2;
+  //form1.Repaint;
+
 
 end;
 
@@ -1425,7 +1428,7 @@ begin
     if Pos('-', macAddress) = 3 then
     begin
 
-      MACPrefix := StringReplace(Copy(MACAddress, 1, 8), '-', ':', [rfReplaceAll]);
+      MACPrefix := StringReplace(Copy(MACAddress, 1, 20), '-', ':', [rfReplaceAll]);
       dbname := dbPath;
       dllname := 'sqlite3.dll';
       if FileExists(dbname) then
@@ -1460,6 +1463,8 @@ var
   dbConnection: TSQLite3Connection;
   sqlTransaction: TSQLTransaction;
   sqlCommand: TSQLQuery;
+  madd6,madd8,madd10:string;
+
 begin
   ShortName := '';
   LongName := '';
@@ -1478,10 +1483,25 @@ begin
     sqlTransaction.Database := dbConnection;
     sqlTransaction.StartTransaction;
 
+    madd6:= Copy(macPrefix, 1, 6);
+    madd8:= Copy(macPrefix, 1, 8);
+    madd10:= Copy(macPrefix, 1, 10);
+
+
     // Prepare and execute SQL command
-    sqlCommand.SQL.Text :=
-      'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix';
-    sqlCommand.ParamByName('prefix').AsString := macPrefix;
+    sqlCommand.SQL.Text :='SELECT short_name, full_name  FROM mac_addresses  WHERE  (( prefix = :prefix6) OR (prefix = :prefix8) OR (prefix = :prefix10)) ORDER BY LENGTH(prefix) DESC LIMIT 1;';
+
+
+
+
+    //'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix6 ';
+    sqlCommand.ParamByName('prefix6').AsString := madd6;
+    sqlCommand.ParamByName('prefix8').AsString := madd8;
+    sqlCommand.ParamByName('prefix10').AsString := madd10;
+
+
+
+
     sqlCommand.Open;
 
     if not sqlCommand.EOF then
@@ -1596,8 +1616,8 @@ procedure TForm1.MenuItem3Click(Sender: TObject);
   sqlTransaction: TSQLTransaction;
   sqlCommand: TSQLQuery;
   lines, parts: TStringList;
-  i: Integer;
-  source: string;
+  i,PosSlash: Integer;
+  source,madd: string;
   dbPath, dbDirectory: string;
 begin
 
@@ -1666,8 +1686,28 @@ begin
 
         if parts.Count >= 3 then
         begin
-          sqlCommand.SQL.Text := 'INSERT INTO mac_addresses (prefix, short_name, full_name) VALUES (:prefix, :shortName, :fullName)';
-          sqlCommand.ParamByName('prefix').AsString := Trim(parts[0]);
+                madd:=Trim(parts[0]);
+
+                // Find the position of the first "/"
+  PosSlash := Pos('/', madd);
+
+  // Check if "/" exists in the string
+  if PosSlash <> 0 then
+  begin
+    // Extract the part before the first "/"
+    madd := Copy(madd, 1, PosSlash - 1);
+  end
+  else
+  begin
+    // If "/" doesn't exist, use the entire string
+   // ResultStr := Str;
+  end;
+
+
+
+
+                sqlCommand.SQL.Text := 'INSERT INTO mac_addresses (prefix, short_name, full_name) VALUES (:prefix, :shortName, :fullName)';
+          sqlCommand.ParamByName('prefix').AsString := madd;
           sqlCommand.ParamByName('shortName').AsString := Trim(parts[1]);
           sqlCommand.ParamByName('fullName').AsString := Trim(parts[2]);
           sqlCommand.ExecSQL;
