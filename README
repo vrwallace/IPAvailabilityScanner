@@ -1,0 +1,3 @@
+Enhanced SQLite code for MAC address import and lookup.
+
+Set the form to the default size instead of adjusting it to a specific percentage of the desktop, as this was causing issues with page rendering.

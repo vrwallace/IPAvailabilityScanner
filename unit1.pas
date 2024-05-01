@@ -1483,7 +1483,7 @@ begin
     sqlTransaction.Database := dbConnection;
     sqlTransaction.StartTransaction;
 
-    madd6:= Copy(macPrefix, 1, 6);
+   { madd6:= Copy(macPrefix, 1, 6);
     madd8:= Copy(macPrefix, 1, 8);
     madd10:= Copy(macPrefix, 1, 10);
 
@@ -1497,7 +1497,16 @@ begin
     //'SELECT short_name, full_name FROM mac_addresses WHERE prefix = :prefix6 ';
     sqlCommand.ParamByName('prefix6').AsString := madd6;
     sqlCommand.ParamByName('prefix8').AsString := madd8;
-    sqlCommand.ParamByName('prefix10').AsString := madd10;
+    sqlCommand.ParamByName('prefix10').AsString := madd10;}
+
+
+    sqlCommand.SQL.Text := 'SELECT short_name, full_name FROM mac_addresses ' +
+                       'WHERE :macPrefix LIKE prefix || ''%'' ' +
+                       'ORDER BY LENGTH(prefix) DESC LIMIT 1;';
+
+sqlCommand.ParamByName('macPrefix').AsString := macPrefix;
+
+sqlCommand.Open;
 
 
 
